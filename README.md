@@ -1,8 +1,8 @@
-# ⚡ FC 26 PRO Pack Opener (V42.1)
+# ⚡ FC 26 PRO Pack Opener (Release V1.0)
 
 Script automatizado para **EA FC 26 Web App**. Abre sobres automáticamente, gestiona repetidos, vende cartas de ligas malas, canjea monedas y exporta estadísticas a Excel.
 
-![Version](https://img.shields.io/badge/version-42.1-blue) ![Status](https://img.shields.io/badge/status-working-success)
+![Version](https://img.shields.io/badge/version-1.0-blue) ![Status](https://img.shields.io/badge/status-working-success)
 
 ## 🚀 Instalación (Paso a Paso)
 
@@ -33,14 +33,15 @@ Una vez tengas Tampermonkey, simplemente haz clic en el siguiente botón. La ext
 
 1.  Entra en la [EA FC 26 Web App](https://www.ea.com/ea-sports-fc/ultimate-team/web-app/).
 2.  Ve a la sección de **TIENDA**.
-3.  Debajo de cualquier sobre, verás un botón nuevo que dice **⚡ PRO**.
+3.  Debajo de cualquier sobre, verás un botón nuevo pequeño con un rayo: **⚡**.
 4.  Al pulsarlo, se abrirá el menú del bot.
 5.  Configura la cantidad de sobres, la velocidad y dale a **EJECUTAR**.
 
 ## ✨ Características Principales
 
 * **🏎️ Auto-Open:** Abre sobres sin parar con velocidad adaptativa.
-* **🧠 Lógica Inteligente (El Estratega):**
+* **🌍 Base de Datos Completa:** Reconoce todas las ligas del juego (Masculinas y Femeninas).
+* **🧠 Lógica Inteligente:**
     * Si es **Oro de Liga Top** → Al Club.
     * Si es **Oro de Liga Mala** → Venta Rápida (Saca monedas).
     * Si es **Repetido Intransferible** → SBC Storage.
@@ -53,4 +54,5 @@ Una vez tengas Tampermonkey, simplemente haz clic en el siguiente botón. La ext
 
 ## ⚠️ Aviso Legal
 Este script es una herramienta de ayuda para evitar clicks repetitivos. Úsalo bajo tu propia responsabilidad. El autor no se hace responsable de posibles sanciones por parte de EA, aunque el script incluye medidas de seguridad (retrasos aleatorios y límites) para imitar el comportamiento humano.
+
 Diodo LED
