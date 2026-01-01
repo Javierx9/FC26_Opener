@@ -23,9 +23,9 @@ Elige tu navegador y dale clic para instalar la extensión oficial:
 ### 2️⃣ Paso 2: Instalar el Script
 Una vez tengas Tampermonkey, simplemente haz clic en el siguiente botón. La extensión detectará el archivo y te preguntará si quieres instalarlo. Dale al botón **"Instalar"**.
 
-# [👉 CLIC AQUÍ PARA INSTALAR EL SCRIPT 👈](https://github.com/Javierx9/FC26-Pro-Opener/raw/refs/heads/main/FC26_Opener.user.js)
+# [👉 CLIC AQUÍ PARA INSTALAR EL SCRIPT 👈](https://github.com/Javierx9/FC26_Opener/raw/refs/heads/main/FC26_Opener.user.js)
 
-*(Si el enlace de arriba no va, copia y pega esto en tu navegador: `https://github.com/Javierx9/FC26-Pro-Opener/raw/refs/heads/main/FC26_Opener.user.js`)*
+*(Si el enlace de arriba no va, copia y pega esto en tu navegador: `https://github.com/Javierx9/FC26_Opener/raw/refs/heads/main/FC26_Opener.user.js`)*
 
 ---
 
@@ -33,7 +33,7 @@ Una vez tengas Tampermonkey, simplemente haz clic en el siguiente botón. La ext
 
 1.  Entra en la [EA FC 26 Web App](https://www.ea.com/ea-sports-fc/ultimate-team/web-app/).
 2.  Ve a la sección de **TIENDA**.
-3.  Debajo de cualquier sobre, verás un botón nuevo que dice **⚡**.
+3.  Debajo de cualquier sobre, verás un botón nuevo que dice **⚡ PRO**.
 4.  Al pulsarlo, se abrirá el menú del bot.
 5.  Configura la cantidad de sobres, la velocidad y dale a **EJECUTAR**.
 
@@ -52,5 +52,5 @@ Una vez tengas Tampermonkey, simplemente haz clic en el siguiente botón. La ext
 ---
 
 ## ⚠️ Aviso Legal
-Este script es una herramienta de ayuda para evitar clicks repetitivos. Úsalo bajo tu propia responsabilidad. El autor no se hace responsable de posibles sanciones por parte de EA, aunque el script incluye medidas de seguridad (retrasos aleatorios y límites) para imitir el comportamiento humano.
+Este script es una herramienta de ayuda para evitar clicks repetitivos. Úsalo bajo tu propia responsabilidad. El autor no se hace responsable de posibles sanciones por parte de EA, aunque el script incluye medidas de seguridad (retrasos aleatorios y límites) para imitar el comportamiento humano.
 Diodo LED
