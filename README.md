@@ -52,6 +52,18 @@ Una vez tengas Tampermonkey, simplemente haz clic en el siguiente botón. La ext
 
 ---
 
+## ❓ Solución de Problemas (No sale el rayo ⚡)
+
+Si has instalado todo y no te sale el botón, prueba esto:
+
+1.  **Recarga la página (F5):** A veces la Web App necesita recargar para detectar el script.
+2.  **Activa el Modo Desarrollador:**
+    * En algunos navegadores (especialmente Edge y Chrome), debes ir a `Configuración > Extensiones`.
+    * Activa el interruptor **"Modo de desarrollador"** (Developer Mode).
+    * Asegúrate de que Tampermonkey está activado.
+
+---
+
 ## ⚠️ Aviso Legal
 Este script es una herramienta de ayuda para evitar clicks repetitivos. Úsalo bajo tu propia responsabilidad. El autor no se hace responsable de posibles sanciones por parte de EA, aunque el script incluye medidas de seguridad (retrasos aleatorios y límites) para imitar el comportamiento humano.
 
