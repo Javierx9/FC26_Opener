@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         FC 26 PRO Pack Opener (V1.2 - Clean Code)
+// @name         FC 26 PRO Pack Opener (V1.2)
 // @namespace    http://tampermonkey.net/
 // @version      1.2
 // @description  Versión Final Pulida: Auto-Open, Base de Datos COMPLETA, Anti-Atasco 1 a 1 y Código Limpio.
@@ -16,7 +16,7 @@
 (function() {
     'use strict';
 
-    console.log("🚀 FC 26 PRO OPENER V1.2 (CLEAN) CARGADO");
+    console.log("🚀 FC 26 PRO OPENER V1.2 CARGADO");
 
     const API_BASE = "https://utas.mob.v5.prd.futc-ext.gcp.ea.com/ut/game/fc26";
     let SESSION_TOKEN = null;
