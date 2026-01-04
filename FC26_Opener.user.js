@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         FC 26 PRO Pack Opener (V1.2)
+// @name         FC 26 PRO Pack Opener (V1.4 - Back to Basics)
 // @namespace    http://tampermonkey.net/
-// @version      1.2
-// @description  Versión Final Pulida: Auto-Open, Base de Datos COMPLETA, Anti-Atasco 1 a 1 y Código Limpio.
+// @version      1.4
+// @description  La versión definitiva. Lotes rápidos (Batch), Fix de Monedas y Cosméticos. Sin tonterías.
 // @author       Javier
 // @match        https://www.ea.com/*
 // @match        https://www.ea.com/ea-sports-fc/ultimate-team/web-app/*
@@ -16,74 +16,23 @@
 (function() {
     'use strict';
 
-    console.log("🚀 FC 26 PRO OPENER V1.2 CARGADO");
+    console.log("🚀 FC 26 PRO V1.4 (BASICS) - CARGADO");
 
     const API_BASE = "https://utas.mob.v5.prd.futc-ext.gcp.ea.com/ut/game/fc26";
     let SESSION_TOKEN = null;
     let CURRENT_SPEED = 'slow';
 
-    // --- 📚 BASE DE DATOS MAESTRA (TODAS LAS LIGAS) ---
+    // --- 📚 BASE DE DATOS MAESTRA ---
     const ALL_LEAGUES = {
-        // --- 🇬🇧 REINO UNIDO ---
-        13:  "Premier League (ENG 1)",
-        14:  "EFL Championship (ENG 2)",
-        60:  "EFL League One (ENG 3)",
-        61:  "EFL League Two (ENG 4)",
-        50:  "Scottish Premiership (SCO)",
-        2216:"Barclays WSL (ENG F)",
-
-        // --- 🇪🇸 ESPAÑA ---
-        53:  "LaLiga EA SPORTS (ESP 1)",
-        54:  "LaLiga Hypermotion (ESP 2)",
-        2217:"Liga F (ESP F)",
-
-        // --- 🇩🇪 ALEMANIA ---
-        19:  "Bundesliga (GER 1)",
-        20:  "Bundesliga 2 (GER 2)",
-        2076:"3. Liga (GER 3)",
-        2214:"Frauen-Bundesliga (GER F)",
-
-        // --- 🇮🇹 ITALIA ---
-        31:  "Serie A Enilive (ITA 1)",
-        32:  "Serie BKT (ITA 2)",
-
-        // --- 🇫🇷 FRANCIA ---
-        16:  "Ligue 1 McDonald's (FRA 1)",
-        17:  "Ligue 2 BKT (FRA 2)",
-        2215:"D1 Arkema (FRA F)",
-
-        // --- 🇪🇺 RESTO DE EUROPA (TOP) ---
-        10:  "Eredivisie (NED)",
-        238: "Liga Portugal (POR)",
-        68:  "Trendyol Süper Lig (TUR)",
-        4:   "Pro League (BEL)",
-
-        // --- 🇪🇺 RESTO DE EUROPA (OTRAS) ---
-        80:  "Ö. Bundesliga (AUT)",
-        1:   "3F Superliga (DEN)",
-        41:  "Eliteserien (NOR)",
-        56:  "Allsvenskan (SWE)",
-        189: "Super League (SUI)",
-        66:  "Ekstraklasa (POL)",
-        330: "SuperLiga (ROM)",
-        317: "Czech First League (CZE)",
-        1003:"UPL (UKR)",
-        65:  "SSE Airtricity PD (IRL)",
-        2232:"UWCL (Champions F)",
-
-        // --- 🌎 AMÉRICAS ---
-        39:  "MLS (USA)",
-        2218:"NWSL (USA F)",
-        308: "Liga Profesional (ARG)",
-        253: "CONMEBOL Libertadores",
-        254: "CONMEBOL Sudamericana",
-
-        // --- 🌏 ASIA / OCEANÍA ---
-        350: "ROSHN Saudi League (SAU)",
-        83:  "K League 1 (KOR)",
-        2012:"CSL (CHN)",
-        351: "A-League (AUS)",
-        2149:"Indian Super League (IND)"
+        13: "Premier League (ENG 1)", 14: "EFL Championship (ENG 2)", 60: "EFL League One (ENG 3)", 61: "EFL League Two (ENG 4)", 50: "Scottish Premiership (SCO)", 2216: "Barclays WSL (ENG F)",
+        53: "LaLiga EA SPORTS (ESP 1)", 54: "LaLiga Hypermotion (ESP 2)", 2217: "Liga F (ESP F)",
+        19: "Bundesliga (GER 1)", 20: "Bundesliga 2 (GER 2)", 2076: "3. Liga (GER 3)", 2214: "Frauen-Bundesliga (GER F)",
+        31: "Serie A Enilive (ITA 1)", 32: "Serie BKT (ITA 2)",
+        16: "Ligue 1 McDonald's (FRA 1)", 17: "Ligue 2 BKT (FRA 2)", 2215: "D1 Arkema (FRA F)",
+        10: "Eredivisie (NED)", 238: "Liga Portugal (POR)", 68: "Trendyol Süper Lig (TUR)", 4: "Pro League (BEL)",
+        80: "Ö. Bundesliga (AUT)", 1: "3F Superliga (DEN)", 41: "Eliteserien (NOR)", 56: "Allsvenskan (SWE)", 189: "Super League (SUI)", 66: "Ekstraklasa (POL)", 330: "SuperLiga (ROM)", 317: "Czech First League (CZE)", 1003: "UPL (UKR)", 65: "SSE Airtricity PD (IRL)", 2232: "UWCL (Champions F)",
+        39: "MLS (USA)", 2218: "NWSL (USA F)", 308: "Liga Profesional (ARG)", 253: "CONMEBOL Libertadores", 254: "CONMEBOL Sudamericana",
+        350: "ROSHN Saudi League (SAU)", 83: "K League 1 (KOR)", 2012: "CSL (CHN)", 351: "A-League (AUS)", 2149: "Indian Super League (IND)"
     };
 
     let CONFIG = {
@@ -95,15 +44,15 @@
         },
         leagues: [13, 14, 53, 54, 19, 20, 31, 32, 16, 17, 2216, 2217, 2214, 2215, 2218, 10, 238, 39, 350],
         checkLeagues: true,
-        soundEnabled: true 
+        soundEnabled: true
     };
 
-    // --- PERSISTENCIA ---
+    // --- UTILS ---
     function loadConfig() {
-        const saved = localStorage.getItem('fc26_pro_config_release');
+        const saved = localStorage.getItem('fc26_pro_config_basics');
         if (saved) { try { CONFIG = { ...CONFIG, ...JSON.parse(saved) }; } catch(e) {} }
     }
-    function saveConfig() { localStorage.setItem('fc26_pro_config_release', JSON.stringify(CONFIG)); }
+    function saveConfig() { localStorage.setItem('fc26_pro_config_basics', JSON.stringify(CONFIG)); }
     loadConfig();
 
     let SESSION_DATA = { items: [], stats: { rating: {}, totw: 0, special: 0, walkout: 0 }, totalOpened: 0, coins: 0 };
@@ -113,62 +62,38 @@
         walkout: () => {
             if (!CONFIG.soundEnabled) return;
             try {
-                const audio = new AudioContext();
-                const now = audio.currentTime;
-                // Fanfarria Triunfal
-                const notes = [{freq: 523.25, start: 0, duration: 0.15}, {freq: 659.25, start: 0.15, duration: 0.15}, {freq: 783.99, start: 0.3, duration: 0.15}, {freq: 1046.50, start: 0.45, duration: 0.4}];
-                notes.forEach(note => {
-                    const osc = audio.createOscillator();
-                    const gain = audio.createGain();
-                    osc.connect(gain); gain.connect(audio.destination);
-                    osc.type = 'triangle'; osc.frequency.value = note.freq;
-                    gain.gain.setValueAtTime(0.1, now + note.start);
-                    gain.gain.exponentialRampToValueAtTime(0.00001, now + note.start + note.duration);
-                    osc.start(now + note.start); osc.stop(now + note.start + note.duration);
+                const audio = new AudioContext(); const now = audio.currentTime;
+                [{f:523.25,s:0}, {f:659.25,s:0.15}, {f:783.99,s:0.3}, {f:1046.5,s:0.45}].forEach(n => {
+                    const o=audio.createOscillator(), g=audio.createGain(); o.connect(g); g.connect(audio.destination);
+                    o.type='triangle'; o.frequency.value=n.f; g.gain.setValueAtTime(0.1, now+n.s);
+                    g.gain.exponentialRampToValueAtTime(0.0001, now+n.s+0.15); o.start(now+n.s); o.stop(now+n.s+0.15);
                 });
             } catch(e) {}
         },
         complete: () => {
             if (!CONFIG.soundEnabled) return;
             try {
-                const audio = new AudioContext();
-                const now = audio.currentTime;
-                // Ding-Dong
-                const sequence = [{freq: 880, start: 0, duration: 0.1}, {freq: 1108, start: 0.15, duration: 0.3}];
-                sequence.forEach(note => {
-                    const osc = audio.createOscillator();
-                    const gain = audio.createGain();
-                    osc.connect(gain); gain.connect(audio.destination);
-                    osc.type = 'sine'; osc.frequency.value = note.freq;
-                    gain.gain.setValueAtTime(0.05, now + note.start);
-                    gain.gain.exponentialRampToValueAtTime(0.00001, now + note.start + note.duration);
-                    osc.start(now + note.start); osc.stop(now + note.start + note.duration);
+                const audio = new AudioContext(); const now = audio.currentTime;
+                [{f:880,s:0}, {f:1108,s:0.15}].forEach(n => {
+                    const o=audio.createOscillator(), g=audio.createGain(); o.connect(g); g.connect(audio.destination);
+                    o.frequency.value=n.f; g.gain.setValueAtTime(0.05, now+n.s); g.gain.exponentialRampToValueAtTime(0.0001, now+n.s+0.3); o.start(now+n.s); o.stop(now+n.s+0.3);
                 });
             } catch(e) {}
         }
     };
 
-    // --- SNIFFER ---
-    const originalSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
-    XMLHttpRequest.prototype.setRequestHeader = function(key, value) {
-        if (key && key.toLowerCase() === 'x-ut-sid') { SESSION_TOKEN = value; updateStatusUI(); }
-        return originalSetRequestHeader.apply(this, arguments);
-    };
-
+    // --- API ---
     const originalFetch = window.fetch;
     window.fetch = new Proxy(originalFetch, {
         apply: function(target, thisArg, argumentsList) {
             const [url, config] = argumentsList;
             if (config && config.headers) {
-                for (let h in config.headers) {
-                    if (h.toLowerCase() === 'x-ut-sid') { SESSION_TOKEN = config.headers[h]; updateStatusUI(); }
-                }
+                for (let h in config.headers) { if (h.toLowerCase() === 'x-ut-sid') { SESSION_TOKEN = config.headers[h]; updateStatusUI(); } }
             }
             return target.apply(thisArg, argumentsList);
         }
     });
 
-    // --- API ---
     const EA_API = {
         async request(endpoint, method, body = null) {
             if (!SESSION_TOKEN) throw new Error("NO_TOKEN");
@@ -185,7 +110,7 @@
                 if (response.status === 404) throw new Error("PACK_NOT_FOUND");
                 if (response.status === 471) throw new Error("UNASSIGNED_ERROR");
                 if (response.status === 460) throw new Error("INVALID_PACK_TYPE");
-                if (response.status === 401 && (endpoint.includes("purchased") || endpoint.includes("item"))) return {};
+                if (response.status === 401) return {};
                 if (text.includes("SBC_STORAGE_FULL") || response.status === 409) throw new Error("STORAGE_FULL");
                 throw new Error(`API Error ${response.status}`);
             }
@@ -193,27 +118,29 @@
         },
         async openStoredPack(packId, isTradeable) { return this.request("/purchased/items", "POST", { packId: parseInt(packId), untradeable: !isTradeable, usePreOrder: true }); },
         async getUnassignedItems() { return this.request("/purchased/items", "GET"); },
+
+        // MODO LOTE (BATCH) - La forma eficiente de V1.0
         async moveItems(itemsArray) {
             if (!itemsArray || itemsArray.length === 0) return;
             const CHUNK_SIZE = 50;
             for (let i = 0; i < itemsArray.length; i += CHUNK_SIZE) {
                 const chunk = itemsArray.slice(i, i + CHUNK_SIZE);
-                try { await this.request("/item", "PUT", { itemData: chunk }); } 
-                catch(e) { 
-                    if (e.message.includes("STORAGE_FULL")) throw e; 
-                    for (const item of chunk) { try { await this.request("/item", "PUT", { itemData: [item] }); } catch(ee) {} } 
+                try {
+                    await this.request("/item", "PUT", { itemData: chunk });
+                } catch(e) {
+                    if (e.message.includes("STORAGE_FULL")) throw e;
+                    // Solo si falla el lote, probamos 1 a 1 como salvavidas
+                    for (const item of chunk) { try { await this.request("/item", "PUT", { itemData: [item] }); } catch(ee) {} }
                 }
             }
         },
-        async discardItems(itemsIdsArray) { if (!itemsIdsArray || itemsIdsArray.length === 0) return; return this.request("/item", "DELETE", { itemIds: itemsIdsArray }); },
+        async discardItems(itemsIdsArray) { if (!itemsIdsArray.length) return; return this.request("/item", "DELETE", { itemIds: itemsIdsArray }); },
         async redeemSpecificItem(itemId) { return this.request(`/item/${itemId}`, "POST", { itemData: [] }); },
         async updateCredits() { try { return await this.request("/user/credits", "GET"); } catch(e) {} },
-        async refreshStore() {
-            try { await this.request("/store/purchaseGroup/all?ppInfo=true&categoryInfo=true", "GET"); await this.request("/sku/FFA26STM/store/category", "GET"); return true; } catch(e) { return false; }
-        }
+        async refreshStore() { try { await this.request("/store/purchaseGroup/all?ppInfo=true&categoryInfo=true", "GET"); await this.request("/sku/FFA26STM/store/category", "GET"); return true; } catch(e) { return false; } }
     };
 
-    // --- CEREBRO ---
+    // --- CEREBRO (Fix V1.4: Monedas y Cosméticos) ---
     function getCardCategory(item) {
         const rare = item.rareflag || 0; const rating = item.rating || 0;
         if (rare === 3 || (rare > 3 && rare !== 48 && rare !== 1) || rating >= 86) return 'special';
@@ -221,28 +148,43 @@
     }
 
     function analyzeItem(item, isRealDuplicate) {
+        // 1. FIX MONEDAS Y TOKENS (Prioridad máxima)
+        const type = (item.itemType || item.type || '').toLowerCase();
+        // Si es moneda, token de draft o algo con valor sin media
+        if (type === 'misc' || type === 'currency' || type === 'draft_token' || (item.value > 0 && !item.rating)) {
+            return 'REDEEM';
+        }
+
         const isTradeable = !item.untradeable;
         const isDupe = isRealDuplicate || item.isDuplicate || (item.itemState === "duplicate");
-        if (item.itemType === 'misc' || item.type === 'misc') return 'REDEEM';
+
+        // 2. LÓGICA JUGADORES (Igual que V1.0)
         if (item.itemType === 'player' || item.type === 'player') {
             const rating = item.rating || 0;
             const category = getCardCategory(item);
+
             if (item.itemType === 'player' || item.type === 'player') {
                 if (!SESSION_DATA.stats.rating[rating]) SESSION_DATA.stats.rating[rating] = 0;
                 SESSION_DATA.stats.rating[rating]++;
                 if (category === 'special' || rating >= 86) { SESSION_DATA.stats.special++; if (!isDupe) SOUNDS.walkout(); }
                 if (rating >= 86) SESSION_DATA.stats.walkout++;
             }
+
             if (category === 'special') { const rules = CONFIG.rules.special; if (!isDupe) return `TO_${rules.new.toUpperCase()}`; return isTradeable ? `TO_${rules.dupeTrans.toUpperCase()}` : `TO_${rules.dupeIntrans.toUpperCase()}`; }
             if (category === 'gold') { const rules = CONFIG.rules.gold; const isImportant = CONFIG.checkLeagues ? CONFIG.leagues.includes(item.leagueId) : true; const isHighRated = rating >= rules.minRatingSell; if (!isDupe) { if (isHighRated || !isTradeable) return 'TO_CLUB'; return isImportant ? 'TO_CLUB' : 'QUICK_SELL'; } else { if (!isTradeable) return 'TO_SBC_STORAGE'; return isHighRated ? 'TO_TRANSFER_LIST' : 'QUICK_SELL'; } }
             if (CONFIG.checkLeagues) { const isImportant = CONFIG.leagues.includes(item.leagueId); if (!isImportant) { if (isTradeable) return 'QUICK_SELL'; return isDupe ? 'QUICK_SELL_0' : 'TO_CLUB'; } }
             if (!isTradeable) return isDupe ? 'TO_SBC_STORAGE' : 'TO_CLUB'; return isDupe ? 'QUICK_SELL' : 'TO_CLUB';
         }
-        if (isTradeable) { if (['kit', 'badge', 'stadium', 'ball', 'vanity', 'custom'].includes(item.itemType)) return 'QUICK_SELL'; return 'TO_TRANSFER_LIST'; }
+
+        // 3. FIX COSMÉTICOS (Venta rápida si son transferibles)
+        if (isTradeable) {
+            if (['kit', 'badge', 'stadium', 'ball', 'vanity', 'custom', 'tifo'].includes(type)) return 'QUICK_SELL';
+            return 'TO_TRANSFER_LIST';
+        }
         return isDupe ? 'QUICK_SELL_0' : 'TO_CLUB';
     }
 
-    // --- MOTOR ---
+    // --- MOTOR (V1.0 ENGINE + FIXES) ---
     async function startEngine(packId, config) {
         const total = parseInt(config.qty); CURRENT_SPEED = config.speed;
         SESSION_DATA = { items: [], stats: { rating: {}, totw: 0, special: 0, walkout: 0 }, totalOpened: 0, coins: 0 };
@@ -253,6 +195,7 @@
             try {
                 updateLoadingMsg(`ABRIENDO SOBRE ${i+1}/${total}...`, {current: i+1, total: total});
                 let data = null, items = [], isRecovery = false;
+
                 try {
                     data = await EA_API.openStoredPack(packId, config.isTradeable);
                     items = data.itemList || data.items || [];
@@ -260,77 +203,69 @@
                 } catch (e) {
                     if (e.message.includes("PACK_NOT_FOUND")) { alert("✅ Sobres terminados."); break; }
                     else if (e.message.includes("UNASSIGNED_ERROR")) {
-                        consecutive471++; if (consecutive471 >= 3) { alert("⛔ PARADA: Bucle de atasco."); break; }
-                        updateLoadingMsg(`⚠️ LIMPIANDO ATASCO (${consecutive471}/3)...`);
-                        // Delay vital de 3s antes de consultar
-                        await new Promise(r => setTimeout(r, 3000));
-                        data = await EA_API.getUnassignedItems(); items = data.itemList || data.items || [];
-                        isRecovery = true; i--; 
-                        if (!items.length) { console.log("Lista vacía, reintentando..."); await new Promise(r => setTimeout(r, 3000)); continue; }
+                        consecutive471++;
+                        if (consecutive471 >= 3) { alert("⛔ PARADA: Bucle de atasco."); break; }
+                        updateLoadingMsg(`⚠️ ATASCO DETECTADO. LIMPIANDO...`);
+                        await new Promise(r => setTimeout(r, 2000)); // Espera prudencial
+                        data = await EA_API.getUnassignedItems();
+                        items = data.itemList || data.items || [];
+                        isRecovery = true; i--;
+                        if (!items.length) { await new Promise(r => setTimeout(r, 2000)); continue; }
                     }
                     else if (e.message.includes("460")) { alert("❌ Error 460: Config mal."); break; }
                     else throw e;
                 }
-                
+
                 if (!items.length && !isRecovery) continue;
                 const duplicateSet = new Set(); if (data.duplicateItemIdList) data.duplicateItemIdList.forEach(d => duplicateSet.add(d.itemId));
                 let moveQueue = [], discardQueue = [], redeemQueue = [];
                 if(!isRecovery) updateLoadingMsg(`ANALIZANDO ${items.length} ITEMS...`, {current: i+1, total: total});
-                
+
                 for (const item of items) {
                     const isRealDupe = duplicateSet.has(item.id); const action = analyzeItem(item, isRealDupe); const cat = (item.itemType === 'player' || item.type === 'player') ? getCardCategory(item) : 'other';
                     if (action === 'QUICK_SELL') { SESSION_DATA.coins += (item.discardValue || 0); updateCoinDisplay(); }
                     else if (action === 'REDEEM') { SESSION_DATA.coins += (item.amount || item.value || 0); updateCoinDisplay(); }
                     if (!isRecovery) SESSION_DATA.items.push({ id: item.id, pack: i + 1, assetId: item.assetId, rating: item.rating || 0, isDupe: isRealDupe, action: action, type: cat, status: "PENDIENTE", isPlayer: (item.itemType === 'player' || item.type === 'player') });
-                    if (action === 'TO_CLUB') moveQueue.push({ id: item.id, pile: "club" }); else if (action === 'TO_TRANSFER_LIST') moveQueue.push({ id: item.id, pile: "trade" }); else if (action === 'TO_SBC_STORAGE') moveQueue.push({ id: item.id, pile: "storage" }); else if (action === 'QUICK_SELL' || action === 'QUICK_SELL_0') discardQueue.push(item.id); else if (action === 'REDEEM') redeemQueue.push(item.id);
+
+                    if (action === 'TO_CLUB') moveQueue.push({ id: item.id, pile: "club" });
+                    else if (action === 'TO_TRANSFER_LIST') moveQueue.push({ id: item.id, pile: "trade" });
+                    else if (action === 'TO_SBC_STORAGE') moveQueue.push({ id: item.id, pile: "storage" });
+                    else if (action === 'QUICK_SELL' || action === 'QUICK_SELL_0') discardQueue.push(item.id);
+                    else if (action === 'REDEEM') redeemQueue.push(item.id);
                 }
 
-                // --- MODO RECUPERACIÓN (1 A 1 LENTO) ---
-                if (isRecovery) {
-                    console.log("🛡️ RECOVERY MODE: 1 by 1...");
-                    const RECOVERY_DELAY = 1500;
-                    for (const q of moveQueue) { try { await EA_API.moveItems([q]); confirmStatus([q.id], "RECUPERADO ✅"); await new Promise(r => setTimeout(r, RECOVERY_DELAY)); } catch(e) { console.error(e); } }
-                    for (const id of discardQueue) { try { await EA_API.discardItems([id]); confirmStatus([id], "VENDIDO ♻️"); await new Promise(r => setTimeout(r, RECOVERY_DELAY)); } catch(e) {} }
-                    for (const id of redeemQueue) { try { await EA_API.redeemSpecificItem(id); confirmStatus([id], "CANJEADO 💰"); await new Promise(r => setTimeout(r, RECOVERY_DELAY)); } catch(e) {} }
-                    await new Promise(r => setTimeout(r, 2000));
-                    continue; // SALTAR EL PROCESO NORMAL
+                // 1. CANJEAR (Primero siempre)
+                if (redeemQueue.length > 0) {
+                    updateLoadingMsg(`CANJEANDO MONEDAS...`);
+                    for (const itemId of redeemQueue) { try { await EA_API.redeemSpecificItem(itemId); confirmStatus([itemId], "CANJEADO ($)"); } catch (e) {} }
+                    await EA_API.updateCredits();
                 }
 
-                // --- PROCESO NORMAL (CLEAN CODE) ---
-                if (redeemQueue.length > 0) { updateLoadingMsg(`CANJEANDO MONEDAS...`); for (const itemId of redeemQueue) { try { await EA_API.redeemSpecificItem(itemId); confirmStatus([itemId], "CANJEADO ($)"); } catch (e) {} } await EA_API.updateCredits(); }
-                
-                // MOVER CON LOGICA SPLIT (Especiales vs Normales)
+                // 2. MOVER (Lotes grandes = Eficiencia)
                 if (moveQueue.length > 0) {
-                    updateLoadingMsg(`GUARDANDO ${moveQueue.length} ITEMS...`);
-                    const specialQueue = []; const normalQueue = [];
-                    moveQueue.forEach(q => {
-                        const item = items.find(it => it.id === q.id);
-                        if (item && (getCardCategory(item) === 'special' || (item.rating || 0) >= 84 || (item.rareflag > 3 && item.rareflag !== 48))) specialQueue.push(q);
-                        else normalQueue.push(q);
-                    });
-
+                    if(!isRecovery) updateLoadingMsg(`GUARDANDO ${moveQueue.length} ITEMS...`);
                     try {
-                        if (normalQueue.length > 0) { await EA_API.moveItems(normalQueue); confirmStatus(normalQueue.map(i => i.id), "MOVIDO OK"); }
-                        if (specialQueue.length > 0) {
-                            console.log(`⚡ Procesando ${specialQueue.length} especiales 1 a 1...`);
-                            for (const q of specialQueue) { try { await EA_API.moveItems([q]); confirmStatus([q.id], "MOVIDO OK"); await new Promise(r => setTimeout(r, 800)); } catch(e) { await new Promise(r => setTimeout(r, 1500)); try { await EA_API.moveItems([q]); } catch(e2) {} } }
-                        }
+                        await EA_API.moveItems(moveQueue);
+                        confirmStatus(moveQueue.map(i => i.id), "MOVIDO OK");
                     } catch (e) {
                         if(e.message.includes("STORAGE")) { alert("ALMACÉN LLENO"); hideLoadingOverlay(); return; }
-                        for(let q of moveQueue) { try { await EA_API.moveItems([q]); } catch(ee) {} }
                     }
                 }
 
-                if (discardQueue.length > 0) { updateLoadingMsg(`VENDIENDO ${discardQueue.length} ITEMS...`); try { await EA_API.discardItems(discardQueue); confirmStatus(discardQueue, "🗑️ VENDIDO"); } catch (e) {} }
-                
+                // 3. VENDER (Lotes grandes)
+                if (discardQueue.length > 0) {
+                    if(!isRecovery) updateLoadingMsg(`VENDIENDO ${discardQueue.length} ITEMS...`);
+                    try {
+                        await EA_API.discardItems(discardQueue);
+                        confirmStatus(discardQueue, "🗑️ VENDIDO");
+                    } catch (e) {}
+                }
+
                 await new Promise(r => setTimeout(r, config.speed === 'fast' ? 500 : 1500));
             } catch (error) { console.error("💥 Error:", error); if (!error.message.includes("401")) { hideLoadingOverlay(); if(!error.message.includes("PACK_NOT_FOUND")) alert(`Error: ${error.message}`); break; } }
         }
-        
-        updateLoadingMsg("ACTUALIZANDO TIENDA..."); 
-        await EA_API.refreshStore(); 
-        await new Promise(r => setTimeout(r, 500));
-        
+
+        updateLoadingMsg("ACTUALIZANDO TIENDA..."); await EA_API.refreshStore(); await new Promise(r => setTimeout(r, 500));
         hideLoadingOverlay(); SOUNDS.complete(); if (config.showReport) showReport(); else alert("✅ Finalizado");
     }
 
@@ -387,7 +322,7 @@
         function showMenu(packId) {
             const overlay = document.createElement('div');
             overlay.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:99999;display:flex;justify-content:center;align-items:center";
-            overlay.innerHTML = `<div style="background:#181818;color:#fff;width:380px;padding:25px;border:1px solid #00d2be;font-family:sans-serif;border-radius:8px;"><div style="color:#00d2be;font-weight:bold;margin-bottom:20px;font-size:18px;text-align:center;">⚡ PRO OPENER 1.2</div><div style="margin-bottom:15px"><label style="display:block;margin-bottom:5px;font-size:13px;color:#aaa;">Cantidad:</label><input type="number" id="qty" value="1" min="1" style="width:100%;padding:8px;background:#333;border:1px solid #555;color:#fff;border-radius:4px;"></div><div style="margin-bottom:20px"><label style="display:block;margin-bottom:5px;font-size:13px;color:#aaa;">Velocidad:</label><select id="speed" style="width:100%;padding:8px;background:#333;border:1px solid #555;color:#fff;border-radius:4px;"><option value="slow">Segura (3.5s)</option><option value="medium">Media (2.5s)</option><option value="fast">Rápida (1.2s)</option></select></div><div style="margin-bottom:20px;background:#222;padding:10px;border-radius:4px;border:1px solid #444;"><label style="cursor:pointer;display:flex;align-items:center;font-weight:bold;font-size:13px;"><input type="checkbox" id="chk-tradeable" style="margin-right:8px;transform:scale(1.2);"> 💱 Es Transferible (Tienda)</label></div><button id="btn-cfg" style="width:100%;padding:10px;background:#333;color:#fff;border:1px solid #555;cursor:pointer;margin-bottom:10px;border-radius:4px;">⚙️ PERSONALIZAR</button><div style="display:flex;gap:10px;margin-top:20px;"><button id="btn-cancel" style="flex:1;padding:12px;background:transparent;border:1px solid #e74c3c;color:#e74c3c;cursor:pointer;border-radius:4px;font-weight:bold;">CERRAR</button><button id="btn-run" style="flex:2;padding:12px;background:#00d2be;color:#000;border:none;cursor:pointer;font-weight:bold;border-radius:4px;">EJECUTAR</button></div><div style="text-align:center;margin-top:15px;font-size:11px;color:#666;"><span id="token-status" style="color:${SESSION_TOKEN ? '#00ff88':'orange'}">● ${SESSION_TOKEN ? 'SISTEMA CONECTADO':'ESPERANDO DATOS'}</span><br><label style="cursor:pointer;margin-top:5px;display:inline-block;"><input type="checkbox" id="chk-report" checked> Ver Informe</label><br><label style="cursor:pointer;margin-top:5px;display:inline-block;"><input type="checkbox" id="chk-sound" ${CONFIG.soundEnabled ? 'checked' : ''}> 🔊 Sonidos</label></div></div>`;
+            overlay.innerHTML = `<div style="background:#181818;color:#fff;width:380px;padding:25px;border:1px solid #00d2be;font-family:sans-serif;border-radius:8px;"><div style="color:#00d2be;font-weight:bold;margin-bottom:20px;font-size:18px;text-align:center;">⚡ PRO OPENER 1.4</div><div style="margin-bottom:15px"><label style="display:block;margin-bottom:5px;font-size:13px;color:#aaa;">Cantidad:</label><input type="number" id="qty" value="1" min="1" style="width:100%;padding:8px;background:#333;border:1px solid #555;color:#fff;border-radius:4px;"></div><div style="margin-bottom:20px"><label style="display:block;margin-bottom:5px;font-size:13px;color:#aaa;">Velocidad:</label><select id="speed" style="width:100%;padding:8px;background:#333;border:1px solid #555;color:#fff;border-radius:4px;"><option value="slow">Segura (3.5s)</option><option value="medium">Media (2.5s)</option><option value="fast">Rápida (1.2s)</option></select></div><div style="margin-bottom:20px;background:#222;padding:10px;border-radius:4px;border:1px solid #444;"><label style="cursor:pointer;display:flex;align-items:center;font-weight:bold;font-size:13px;"><input type="checkbox" id="chk-tradeable" style="margin-right:8px;transform:scale(1.2);"> 💱 Es Transferible (Tienda)</label></div><button id="btn-cfg" style="width:100%;padding:10px;background:#333;color:#fff;border:1px solid #555;cursor:pointer;margin-bottom:10px;border-radius:4px;">⚙️ PERSONALIZAR</button><div style="display:flex;gap:10px;margin-top:20px;"><button id="btn-cancel" style="flex:1;padding:12px;background:transparent;border:1px solid #e74c3c;color:#e74c3c;cursor:pointer;border-radius:4px;font-weight:bold;">CERRAR</button><button id="btn-run" style="flex:2;padding:12px;background:#00d2be;color:#000;border:none;cursor:pointer;font-weight:bold;border-radius:4px;">EJECUTAR</button></div><div style="text-align:center;margin-top:15px;font-size:11px;color:#666;"><span id="token-status" style="color:${SESSION_TOKEN ? '#00ff88':'orange'}">● ${SESSION_TOKEN ? 'SISTEMA CONECTADO':'ESPERANDO DATOS'}</span><br><label style="cursor:pointer;margin-top:5px;display:inline-block;"><input type="checkbox" id="chk-report" checked> Ver Informe</label><br><label style="cursor:pointer;margin-top:5px;display:inline-block;"><input type="checkbox" id="chk-sound" ${CONFIG.soundEnabled ? 'checked' : ''}> 🔊 Sonidos</label></div></div>`;
             document.body.appendChild(overlay);
             document.getElementById('btn-cancel').onclick = () => overlay.remove();
             document.getElementById('btn-cfg').onclick = () => showConfigSettings();
