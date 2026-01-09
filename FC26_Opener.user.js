@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         FC 26 PRO Pack Opener (V4.6)
+// @name         FC 26 PRO Pack Opener
 // @namespace    http://tampermonkey.net/
-// @version      4.6
-// @description  V4.5 + Fix UI + ShowReport Restored. Ligas HTML, Modo Coleccionista, Anti-Bucle y Detector Picks.
+// @version      4.7
+// @description  Versión corregida: Sintaxis revisada para evitar errores de ReferenceError. Funcionalidad completa V4.6.
 // @author       Javier
 // @match        https://www.ea.com/*
 // @match        https://www.ea.com/ea-sports-fc/ultimate-team/web-app/*
@@ -18,13 +18,13 @@
 
     if (window.location.href.indexOf('/ultimate-team/web-app') === -1) return;
 
-    console.log("🚀 FC 26 PRO V4.6 (UI FIXED & REPORT RESTORED) CARGADO");
+    console.log("🚀 FC 26 PRO V4.7 (STABLE BUILD) CARGADO");
 
     const API_BASE = "https://utas.mob.v5.prd.futc-ext.gcp.ea.com/ut/game/fc26";
     let SESSION_TOKEN = null;
     let CURRENT_SPEED = 'slow';
 
-    // --- 📚 BASE DE DATOS MAESTRA (Nombres Oficiales) ---
+    // --- 📚 BASE DE DATOS MAESTRA ---
     const ALL_LEAGUES = {
         13: "Premier League (ENG 1)",
         14: "EFL Championship (ENG 2)",
@@ -42,7 +42,7 @@
         39: "MLS (MLS)",
         350: "ROSHN Saudi League (SAU 1)",
         330: "SUPERLIGA (ROM 1)",
-
+        
         // Soporte
         50: "Scottish Premiership (SCO)",
         60: "EFL League One (ENG 3)",
@@ -81,10 +81,10 @@
     };
 
     function loadConfig() {
-        const saved = localStorage.getItem('fc26_pro_config_v4_6');
+        const saved = localStorage.getItem('fc26_pro_config_v4_7');
         if (saved) { try { CONFIG = { ...CONFIG, ...JSON.parse(saved) }; } catch(e) {} }
     }
-    function saveConfig() { localStorage.setItem('fc26_pro_config_v4_6', JSON.stringify(CONFIG)); }
+    function saveConfig() { localStorage.setItem('fc26_pro_config_v4_7', JSON.stringify(CONFIG)); }
     loadConfig();
 
     let SESSION_DATA = { items: [], stats: { rating: {}, totw: 0, special: 0, walkout: 0 }, totalOpened: 0, coins: 0 };
@@ -140,19 +140,19 @@
             const speedDelays = { fast: { min: 100, max: 200 }, medium: { min: 200, max: 350 }, slow: { min: 350, max: 600 } };
             const delays = speedDelays[CURRENT_SPEED || 'slow'];
             await new Promise(r => setTimeout(r, Math.random() * (delays.max - delays.min) + delays.min));
-
+            
             let fullUrl = `${API_BASE}${endpoint}`;
             if (method === "DELETE" && body && body.itemIds) { fullUrl += `?itemIds=${body.itemIds.join(',')}`; body = null; }
-
+            
             const response = await originalFetch(fullUrl, { method: method, headers: { "X-Ut-Sid": SESSION_TOKEN, "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : null });
-
+            
             if (!response.ok) {
                 const text = await response.text();
                 if (response.status === 404) throw new Error("PACK_NOT_FOUND");
-                if (response.status === 471) throw new Error("UNASSIGNED_ERROR");
+                if (response.status === 471) throw new Error("UNASSIGNED_ERROR"); 
                 if (response.status === 460) throw new Error("INVALID_PACK_TYPE");
                 if (response.status === 409 || text.includes("SBC_STORAGE_FULL")) throw new Error("STORAGE_FULL");
-
+                
                 if (response.status === 400) {
                     if (endpoint.includes("/item/") && method === "POST") {
                         console.warn("⚠️ Error 400 en canje (ignorado, posible auto-canje)");
@@ -163,39 +163,39 @@
                     }
                     throw new Error("BAD_REQUEST");
                 }
-
+                
                 if (response.status === 401) return {};
                 throw new Error(`API Error ${response.status}`);
             }
             return response.json();
         },
         async openStoredPack(packId, isTradeable) { return this.request("/purchased/items", "POST", { packId: parseInt(packId), untradeable: !isTradeable, usePreOrder: true }); },
-
+        
         async moveItems(itemsArray) {
             if (!itemsArray || itemsArray.length === 0) return;
-            const CHUNK_SIZE = 50;
+            const CHUNK_SIZE = 50; 
             for (let i = 0; i < itemsArray.length; i += CHUNK_SIZE) {
                 const chunk = itemsArray.slice(i, i + CHUNK_SIZE);
                 try {
                     await this.request("/item", "PUT", { itemData: chunk });
                 } catch(e) {
                     console.warn("Fallo lote, intentando fallback...", e);
-                    for (const item of chunk) {
-                        try {
-                            await this.request("/item", "PUT", { itemData: [item] });
+                    for (const item of chunk) { 
+                        try { 
+                            await this.request("/item", "PUT", { itemData: [item] }); 
                         } catch(ee) {
                             if (item.pile === 'club') {
                                 try { await this.request("/item", "PUT", { itemData: [{id: item.id, pile: 'storage'}] }); } catch (eee) {}
                             }
-                        }
+                        } 
                     }
                 }
             }
         },
-
+        
         async discardItems(itemsIdsArray) {
             if (!itemsIdsArray || itemsIdsArray.length === 0) return;
-            const CHUNK_SIZE = 40;
+            const CHUNK_SIZE = 40; 
             for (let i = 0; i < itemsIdsArray.length; i += CHUNK_SIZE) {
                 const chunk = itemsIdsArray.slice(i, i + CHUNK_SIZE);
                 try {
@@ -205,7 +205,7 @@
                 }
             }
         },
-
+        
         async redeemSpecificItem(itemId) { return this.request(`/item/${itemId}`, "POST", { itemData: [] }); },
         async updateCredits() { try { return await this.request("/user/credits", "GET"); } catch(e) {} },
         async refreshStore() { try { await this.request("/store/purchaseGroup/all?ppInfo=true&categoryInfo=true", "GET"); return true; } catch(e) { return false; } }
@@ -215,18 +215,18 @@
     function getCardCategory(item) {
         const rare = item.rareflag || 0; const rating = item.rating || 0;
         const specialRareFlags = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 17, 18, 19, 20, 21, 22, 23, 24, 32, 33, 34, 35, 36, 37, 38, 39, 40, 50, 51, 52, 53, 54, 55];
-        if (specialRareFlags.includes(rare)) return 'special';
-        if (rating >= 75) return 'gold';
-        if (rating >= 65) return 'silver';
+        if (specialRareFlags.includes(rare)) return 'special'; 
+        if (rating >= 75) return 'gold'; 
+        if (rating >= 65) return 'silver'; 
         return 'bronze';
     }
 
     function analyzeItem(item, isRealDuplicate) {
         const type = (item.itemType || item.type || '').toLowerCase();
-
+        
         // 0. STOP PICK
         const isPlayerPick = (
-            type.includes('pick') || type.includes('choice') ||
+            type.includes('pick') || type.includes('choice') || 
             item.cardsubtypeid === 20 || item.cardsubtypeid === 203 || item.cardsubtypeid === 204
         );
         if (isPlayerPick) return 'STOP_PICK';
@@ -244,14 +244,14 @@
         const isTradeable = !item.untradeable;
         const isDupe = isRealDuplicate || item.isDuplicate || (item.itemState === "duplicate");
 
-        // 2. NO JUGADORES (Collector Mode)
+        // 2. NO JUGADORES (V4.4 COLLECTOR)
         if (type !== 'player') {
             const isJunk = ['kit', 'badge', 'stadium', 'ball', 'tifo', 'celebration', 'manager', 'staff'].some(c => type.includes(c));
-
+            
             if (isJunk) {
                 if (isTradeable) return 'QUICK_SELL';
                 if (isDupe) return 'QUICK_SELL_0';
-                return 'TO_CLUB'; // Guardar basura nueva intransferible
+                return 'TO_CLUB'; // Guardar nuevo intransferible
             }
             return isTradeable ? 'QUICK_SELL' : 'TO_CLUB'; // Recursos
         }
@@ -263,35 +263,35 @@
         // Stats
         if (!SESSION_DATA.stats.rating[rating]) SESSION_DATA.stats.rating[rating] = 0;
         SESSION_DATA.stats.rating[rating]++;
-        if (category === 'special') SESSION_DATA.stats.special++;
-        if (rating >= 86) SESSION_DATA.stats.walkout++;
-
+        if (category === 'special') SESSION_DATA.stats.special++; 
+        if (rating >= 86) SESSION_DATA.stats.walkout++; 
+        
         if ((category === 'special' || rating >= 86) && !isDupe && CONFIG.soundEnabled) {
             SOUNDS.walkout();
         }
 
         // A. ESPECIALES
-        if (category === 'special') {
-            const rules = CONFIG.rules.special;
-            if (isTradeable) return 'TO_TRANSFER_LIST';
-            return isDupe ? `TO_${rules.dupeIntrans.toUpperCase()}` : `TO_${rules.new.toUpperCase()}`;
+        if (category === 'special') { 
+            const rules = CONFIG.rules.special; 
+            if (isTradeable) return 'TO_TRANSFER_LIST'; 
+            return isDupe ? `TO_${rules.dupeIntrans.toUpperCase()}` : `TO_${rules.new.toUpperCase()}`; 
         }
 
         // B. ORO
         else if (category === 'gold') {
             const rules = CONFIG.rules.gold;
-            const isHighRated = rating >= rules.minRatingSell;
+            const isHighRated = rating >= rules.minRatingSell; 
             const isImportantLeague = CONFIG.checkLeagues ? CONFIG.leagues.includes(item.leagueId) : true;
 
             if (isTradeable && rating >= 84) return 'TO_TRANSFER_LIST';
-
+            
             if (isDupe) {
                 if (!isTradeable) return 'TO_SBC_STORAGE';
                 else return isHighRated ? 'TO_TRANSFER_LIST' : 'QUICK_SELL';
             }
-            else {
+            else { 
                 if (!isTradeable || isHighRated || isImportantLeague) return 'TO_CLUB';
-                if (CONFIG.saveGolds) return 'TO_CLUB'; // Hoarder Mode
+                if (CONFIG.saveGolds) return 'TO_CLUB'; 
                 return 'QUICK_SELL';
             }
         }
@@ -299,7 +299,7 @@
         // C. PLATA/BRONCE
         else {
             if (!isTradeable) return isDupe ? 'TO_SBC_STORAGE' : 'TO_CLUB';
-            else if (CONFIG.checkLeagues && CONFIG.leagues.includes(item.leagueId)) return isDupe ? 'QUICK_SELL' : 'TO_CLUB';
+            else if (CONFIG.checkLeagues && CONFIG.leagues.includes(item.leagueId)) return isDupe ? 'QUICK_SELL' : 'TO_CLUB'; 
             else return 'QUICK_SELL';
         }
     }
@@ -307,24 +307,24 @@
     async function startEngine(packId, config) {
         const total = parseInt(config.qty); CURRENT_SPEED = config.speed;
         SESSION_DATA = { items: [], stats: { rating: {}, totw: 0, special: 0, walkout: 0 }, totalOpened: 0, coins: 0 };
-
+        
         showLoadingOverlay();
 
         for (let i = 0; i < total; i++) {
             console.log(`📦 Abriendo sobre ${i+1}/${total}`);
-
+            
             try {
                 updateLoadingMsg(`ABRIENDO SOBRE ${i+1}/${total}...`, {current: i+1, total: total});
-
+                
                 let data = await EA_API.openStoredPack(packId, config.isTradeable);
                 let items = data.itemList || data.items || [];
                 SESSION_DATA.totalOpened++;
-
+                
                 if (!items.length) continue;
 
-                const duplicateSet = new Set();
+                const duplicateSet = new Set(); 
                 if (data.duplicateItemIdList) data.duplicateItemIdList.forEach(d => duplicateSet.add(d.itemId));
-
+                
                 let moveQueue = [], discardQueue = [], redeemQueue = [];
                 let stopExecution = false;
 
@@ -333,7 +333,7 @@
                     const isRealDupe = duplicateSet.has(item.id);
                     const action = analyzeItem(item, isRealDupe);
                     const cat = (item.itemType === 'player' || item.type === 'player') ? getCardCategory(item) : 'other';
-
+                    
                     if (action === 'STOP_PICK') { stopExecution = true; break; }
 
                     if (action === 'REDEEM') {
@@ -357,20 +357,20 @@
                     alert("⚠️ PLAYER PICK DETECTADO.\n\nEl script se ha detenido. Elige tu jugador.");
                     break;
                 }
-
+                
                 console.log(`📊 Análisis: ${redeemQueue.length} canjeables, ${moveQueue.length} a mover, ${discardQueue.length} a vender`);
 
                 // 1. CANJEAR
                 if (redeemQueue.length > 0) {
                     updateLoadingMsg(`CANJEANDO ${redeemQueue.length} ITEMS...`);
-                    for (const redeemItem of redeemQueue) {
-                        try {
-                            await EA_API.redeemSpecificItem(redeemItem.id);
+                    for (const redeemItem of redeemQueue) { 
+                        try { 
+                            await EA_API.redeemSpecificItem(redeemItem.id); 
                             SESSION_DATA.coins += redeemItem.value;
                             updateCoinDisplay();
-                            confirmStatus([redeemItem.id], "CANJEADO ($)");
-                        }
-                        catch (e) {
+                            confirmStatus([redeemItem.id], "CANJEADO ($)"); 
+                        } 
+                        catch (e) { 
                             if(e.message === "REDEEM_FAILED") {
                                 console.log(`✅ Auto-canjeado: ${redeemItem.type}`);
                                 confirmStatus([redeemItem.id], "CANJEADO (Auto)");
@@ -378,16 +378,16 @@
                                 console.warn("Error real canje:", e);
                                 confirmStatus([redeemItem.id], "ERROR CANJE");
                             }
-                        }
+                        } 
                     }
                     await EA_API.updateCredits();
-                    await new Promise(r => setTimeout(r, 800));
+                    await new Promise(r => setTimeout(r, 800)); 
                 }
 
                 // 2. MOVER
                 if (moveQueue.length > 0) {
                     updateLoadingMsg(`GUARDANDO ${moveQueue.length} ITEMS...`);
-                    await EA_API.moveItems(moveQueue);
+                    await EA_API.moveItems(moveQueue); 
                     confirmStatus(moveQueue.map(i => i.id), "MOVIDO OK");
                 }
 
@@ -402,9 +402,9 @@
 
             } catch (error) {
                 console.error("⛔ ERROR EN SOBRE:", error);
-
+                
                 const isCritical = ['PACK_NOT_FOUND', 'UNASSIGNED_ERROR', 'STORAGE_FULL', 'NO_TOKEN', 'INVALID_PACK_TYPE', 'BAD_REQUEST_OPENING'].some(e => error.message.includes(e));
-
+                
                 if (isCritical) {
                     hideLoadingOverlay();
                     let msg = `❌ ERROR CRÍTICO: ${error.message}`;
@@ -413,15 +413,15 @@
                     alert(msg);
                     break;
                 }
-
+                
                 console.warn(`⚠️ Error no crítico en sobre ${i+1}, continuando...`);
                 await new Promise(r => setTimeout(r, 1000));
             }
         }
-
+        
         updateLoadingMsg("ACTUALIZANDO TIENDA...");
         await EA_API.refreshStore();
-
+        
         try {
             const tabs = document.querySelectorAll('.ut-tab-bar-item');
             let clubBtn, storeBtn;
@@ -437,10 +437,10 @@
         } catch(e) {}
 
         hideLoadingOverlay();
-        if(CONFIG.soundEnabled) SOUNDS.complete();
-
-        // FIX V4.6: Llamada segura al reporte
-        if (config.showReport && typeof showReport === 'function') showReport();
+        if(CONFIG.soundEnabled) SOUNDS.complete(); 
+        
+        // FIX V4.7: Llamada segura al reporte (Esta función debe estar definida abajo)
+        if (config.showReport && typeof showReport === 'function') showReport(); 
         else alert("✅ Finalizado");
     }
 
@@ -456,14 +456,13 @@
 
     function showConfigSettings() {
         const overlay = document.createElement('div'); overlay.id = "cfg-overlay"; overlay.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:999999;display:flex;justify-content:center;align-items:center;backdrop-filter:blur(2px);";
-
-        // Listener para cerrar con ESC
+        
         document.addEventListener('keydown', function(e) { if(e.key === "Escape") overlay.remove(); }, {once:true});
 
         const mkSel = (cat, context, val) => { let options = []; if (context === 'new') options = [['club','Club'], ['trade','Transferible'], ['discard','Venta']]; else if (context === 'dupeTrans') options = [['trade','Transferible'], ['discard','Venta']]; else if (context === 'dupeIntrans') options = [['storage','SBC'], ['discard','Venta (0)']]; let html = `<select onchange="window.updateRule('${cat}','${context}',this.value)" style="background:#333;color:#fff;border:1px solid #555;padding:4px;width:100%;">`; options.forEach(opt => { html += `<option value="${opt[0]}" ${val === opt[0] ? 'selected' : ''}>${opt[1]}</option>`; }); return html + `</select>`; };
         const renderLeagues = () => CONFIG.leagues.map(id => `<span style="background:#00d2be;color:#000;padding:4px 8px;border-radius:4px;margin-right:5px;font-size:11px;display:inline-block;margin-bottom:5px;">${getLeagueName(id)} <b onclick="window.removeLeague(${id})" style="cursor:pointer;margin-left:5px;color:#c0392b;font-weight:bold;">✕</b></span>`).join('');
         let leagueOptions = `<option value="">-- Selecciona Liga --</option>`; Object.entries(ALL_LEAGUES).sort((a,b) => a[1].localeCompare(b[1])).forEach(([id, name]) => { leagueOptions += `<option value="${id}">${name}</option>`; });
-
+        
         let html = `<div style="background:#181818;color:#fff;font-family:sans-serif;width:750px;padding:25px;border:1px solid #00d2be;border-radius:8px;max-height:95vh;overflow-y:auto;">
             <h3 style="color:#00d2be;border-bottom:1px solid #333;padding-bottom:10px;margin-top:0;">⚙️ CONFIGURACIÓN <span style="font-size:12px;color:#666;float:right">(ESC para salir)</span></h3>
             <div style="margin-bottom:20px;background:#222;padding:15px;border-radius:5px;border:1px solid #333;"><label style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;"><span style="font-weight:bold;color:#00d2be;">🔊 Efectos de Sonido</span><input type="checkbox" id="sound-toggle" ${CONFIG.soundEnabled ? 'checked' : ''} onchange="window.toggleSound(this.checked)" style="transform:scale(1.5);cursor:pointer;"></label></div>
@@ -487,7 +486,7 @@
         document.getElementById('save-cfg').onclick = () => { saveConfig(); overlay.remove(); alert('✅ Configuración guardada'); };
     }
 
-    // --- FUNCIÓN RESTAURADA: showReport ---
+    // --- FUNCIÓN RESTAURADA Y VERIFICADA ---
     function showReport() {
         const highlightItems = SESSION_DATA.items.filter(i => i.isPlayer && (i.rating >= 84 || i.type === 'special')).sort((a,b) => b.rating - a.rating);
         let statsHtml = `<div id="tab-stats"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:15px;text-align:center;"><div class="stat-box" style="border:1px solid #00d2be;padding:5px;">${SESSION_DATA.totalOpened} <span style="font-size:10px">SOBRES</span></div><div class="stat-box" style="border:1px solid #f1c40f;padding:5px;">${SESSION_DATA.stats.walkout} <span style="font-size:10px">WALKOUT</span></div><div class="stat-box" style="border:1px solid #9b59b6;padding:5px;">${SESSION_DATA.stats.special} <span style="font-size:10px">ESPECIAL</span></div><div class="stat-box" style="border:1px solid #f39c12;padding:5px;color:#f39c12;font-weight:bold;">${SESSION_DATA.coins.toLocaleString()} <span style="font-size:10px;color:#aaa">GANANCIAS</span></div></div><div style="height:300px;overflow-y:auto;border:1px solid #333;padding:10px;"><table style="width:100%;font-size:12px;border-collapse:collapse;">`;
@@ -510,5 +509,24 @@
         document.getElementById('close-report').onclick = () => overlay.remove();
     }
 
+    // --- INIT ---
+    function initUI() {
+        if (!document.body) { setTimeout(initUI, 100); return; }
+        const style = document.createElement("style");
+        style.innerHTML = ".my-btn{background:#1e272e;color:#00d2be;border:1px solid #00d2be;padding:0 15px;font-weight:bold;cursor:pointer;margin-left:10px;}";
+        document.head.appendChild(style);
+        function showMenu(packId) {
+            const overlay = document.createElement('div');
+            overlay.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:99999;display:flex;justify-content:center;align-items:center";
+            overlay.innerHTML = `<div style="background:#181818;color:#fff;width:380px;padding:25px;border:1px solid #00d2be;font-family:sans-serif;border-radius:8px;"><div style="color:#00d2be;font-weight:bold;margin-bottom:20px;font-size:18px;text-align:center;">⚡ PRO OPENER 4.7</div><div style="margin-bottom:15px"><label style="display:block;margin-bottom:5px;font-size:13px;color:#aaa;">Cantidad:</label><input type="number" id="qty" value="1" min="1" style="width:100%;padding:8px;background:#333;border:1px solid #555;color:#fff;border-radius:4px;"></div><div style="margin-bottom:20px"><label style="display:block;margin-bottom:5px;font-size:13px;color:#aaa;">Velocidad:</label><select id="speed" style="width:100%;padding:8px;background:#333;border:1px solid #555;color:#fff;border-radius:4px;"><option value="slow">Segura (3.5s)</option><option value="medium">Media (2.5s)</option><option value="fast">Rápida (1.2s)</option></select></div><div style="margin-bottom:20px;background:#222;padding:10px;border-radius:4px;border:1px solid #444;"><label style="cursor:pointer;display:flex;align-items:center;font-weight:bold;font-size:13px;"><input type="checkbox" id="chk-tradeable" style="margin-right:8px;transform:scale(1.2);"> 💱 Es Transferible (Tienda)</label></div><button id="btn-cfg" style="width:100%;padding:10px;background:#333;color:#fff;border:1px solid #555;cursor:pointer;margin-bottom:10px;border-radius:4px;">⚙️ PERSONALIZAR</button><div style="display:flex;gap:10px;margin-top:20px;"><button id="btn-cancel" style="flex:1;padding:12px;background:transparent;border:1px solid #e74c3c;color:#e74c3c;cursor:pointer;border-radius:4px;font-weight:bold;">CERRAR</button><button id="btn-run" style="flex:2;padding:12px;background:#00d2be;color:#000;border:none;cursor:pointer;font-weight:bold;border-radius:4px;">EJECUTAR</button></div><div style="text-align:center;margin-top:15px;font-size:11px;color:#666;"><span id="token-status" style="color:${SESSION_TOKEN ? '#00ff88':'orange'}">● ${SESSION_TOKEN ? 'SISTEMA CONECTADO':'ESPERANDO DATOS'}</span><br><div style="display:flex;justify-content:center;gap:15px;margin-top:5px;"><label style="cursor:pointer;"><input type="checkbox" id="chk-report" checked> Ver Informe</label><label style="cursor:pointer;"><input type="checkbox" id="chk-sound" ${CONFIG.soundEnabled ? 'checked' : ''}> 🔊 Sonidos</label></div></div></div>`;
+            document.body.appendChild(overlay);
+            document.getElementById('btn-cancel').onclick = () => overlay.remove();
+            document.getElementById('btn-cfg').onclick = () => showConfigSettings();
+            document.getElementById('btn-run').onclick = () => { if (!SESSION_TOKEN) { alert("Navega por la web."); return; } CONFIG.soundEnabled = document.getElementById('chk-sound').checked; saveConfig(); const cfg = { qty: document.getElementById('qty').value, speed: document.getElementById('speed').value, isTradeable: document.getElementById('chk-tradeable').checked, showReport: document.getElementById('chk-report').checked }; overlay.remove(); startEngine(packId, cfg); };
+        }
+        function inject(footer) { if (footer.querySelector('.my-btn')) return; const view = footer.closest('.ut-store-pack-details-view'); const btn = document.createElement('button'); btn.className = 'my-btn'; btn.innerText = '⚡'; btn.onclick = (e) => { e.preventDefault(); const pid = view ? (view.getAttribute('data-id') || "0") : "0"; showMenu(pid); }; footer.appendChild(btn); }
+        const obs = new MutationObserver(e => e.forEach(m => { if(m.addedNodes.length) { const f = document.getElementsByClassName("ut-store-pack-details-view--footer"); for(let x of f) inject(x); } }));
+        obs.observe(document.body, {childList:true, subtree:true});
+    }
     initUI();
 })();
