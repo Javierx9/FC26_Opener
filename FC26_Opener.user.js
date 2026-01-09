@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         FC 26 PRO Pack Opener (V4.6 - UI Fixed & Report Restored)
+// @name         FC 26 PRO Pack Opener (V4.6)
 // @namespace    http://tampermonkey.net/
 // @version      4.6
 // @description  V4.5 + Fix UI + ShowReport Restored. Ligas HTML, Modo Coleccionista, Anti-Bucle y Detector Picks.
-// @author       Javier & The AI Team
+// @author       Javier
 // @match        https://www.ea.com/*
 // @match        https://www.ea.com/ea-sports-fc/ultimate-team/web-app/*
 // @include      https://www.ea.com/*
