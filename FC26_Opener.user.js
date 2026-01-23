@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         FC 26 PRO Pack Opener
 // @namespace    http://tampermonkey.net/
-// @version      4.7
-// @description  Versión corregida: Sintaxis revisada para evitar errores de ReferenceError. Funcionalidad completa V4.6.
+// @version      6.0
+// @description  Versión definitiva de Producción: Ultra-rápida, sin logs de consola, 100% limpia.
 // @author       Javier
 // @match        https://www.ea.com/*
 // @match        https://www.ea.com/ea-sports-fc/ultimate-team/web-app/*
@@ -18,99 +18,59 @@
 
     if (window.location.href.indexOf('/ultimate-team/web-app') === -1) return;
 
-    console.log("🚀 FC 26 PRO V4.7 (STABLE BUILD) CARGADO");
+
+    function debugLog(icon, title, message = "", object = null) {
+        // En Producción no imprimimos nada en consola para ahorrar RAM.
+        return;
+    }
 
     const API_BASE = "https://utas.mob.v5.prd.futc-ext.gcp.ea.com/ut/game/fc26";
     let SESSION_TOKEN = null;
     let CURRENT_SPEED = 'slow';
 
-    // --- 📚 BASE DE DATOS MAESTRA ---
     const ALL_LEAGUES = {
-        13: "Premier League (ENG 1)",
-        14: "EFL Championship (ENG 2)",
-        16: "Ligue 1 McDonald's (FRA 1)",
-        17: "Ligue 2 BKT (FRA 2)",
-        31: "Serie A Enilive (ITA 1)",
-        32: "Serie BKT (ITA 2)",
-        19: "Bundesliga (GER 1)",
-        20: "Bundesliga 2 (GER 2)",
-        53: "LALIGA EA SPORTS (ESP 1)",
-        54: "LALIGA HYPERMOTION (ESP 2)",
-        4:  "1A Pro League (BEL 1)",
-        10: "Eredivisie (NED 1)",
-        238: "Liga Portugal (POR 1)",
-        39: "MLS (MLS)",
-        350: "ROSHN Saudi League (SAU 1)",
-        330: "SUPERLIGA (ROM 1)",
-        
-        // Soporte
-        50: "Scottish Premiership (SCO)",
-        60: "EFL League One (ENG 3)",
-        61: "EFL League Two (ENG 4)",
-        2076: "3. Liga (GER 3)",
-        68: "Trendyol Süper Lig (TUR)",
-        80: "Ö. Bundesliga (AUT)",
-        1: "3F Superliga (DEN)",
-        41: "Eliteserien (NOR)",
-        56: "Allsvenskan (SWE)",
-        189: "Super League (SUI)",
-        66: "Ekstraklasa (POL)",
-        317: "Czech First League (CZE)",
-        1003: "UPL (UKR)",
-        65: "SSE Airtricity PD (IRL)",
-        308: "Liga Profesional (ARG)",
-        253: "CONMEBOL Libertadores",
-        254: "CONMEBOL Sudamericana",
-        83: "K League 1 (KOR)",
-        2012: "CSL (CHN)",
-        351: "A-League (AUS)",
-        2149: "Indian Super League (IND)"
+        13: "Premier League (ENG 1)", 14: "EFL Championship (ENG 2)", 53: "LALIGA EA SPORTS (ESP 1)", 54: "LALIGA HYPERMOTION (ESP 2)",
+        19: "Bundesliga (GER 1)", 20: "Bundesliga 2 (GER 2)", 31: "Serie A Enilive (ITA 1)", 32: "Serie BKT (ITA 2)",
+        16: "Ligue 1 McDonald's (FRA 1)", 17: "Ligue 2 BKT (FRA 2)", 4: "1A Pro League (BEL 1)", 10: "Eredivisie (NED 1)",
+        308: "Liga Portugal (POR 1)", 330: "SUPERLIGA (ROM 1)", 68: "Trendyol Süper Lig (TUR 1)", 39: "MLS (MLS)",
+        350: "ROSHN Saudi League (SAU 1)", 353: "LPF (ARG 1)", 1003: "Libertadores (LIB)", 1014: "Sudamericana (SUD)",
+        60: "EFL League One (ENG 3)", 61: "EFL League Two (ENG 4)", 2076: "3. Liga (GER 3)", 1: "3F Superliga (DEN 1)",
+        351: "A-League (AUS 1)", 56: "Allsvenskan (SWE 1)", 189: "Brack Super League (SUI 1)", 2012: "CSL (CHN 1)",
+        41: "Eliteserien (NOR 1)", 322: "Finnliiga (FIN 1)", 63: "Hellas Liga (GRE 1)", 2149: "ISL (IND 1)",
+        83: "K League 1 (KOR 1)", 2244: "Liga Azerbaijan (AZE 1)", 2249: "Liga Chile (CHI 1)", 2209: "Liga Colombia (COL 1)",
+        2210: "Liga Cyprus (CYP 1)", 317: "Liga Hrvatska (CRO 1)", 2211: "Magyar Liga (HUN 1)", 66: "PKO BP Ekstraklasa (POL 1)",
+        50: "Scottish Prem (SPFL)", 65: "SSE Airtricity PD (IRL 1)", 332: "Ukrayina Liha (UKR 1)", 2172: "United Emirates League (UAE 1)",
+        80: "Ö. Bundesliga (AUT 1)", 319: "Česká Liga (CZE 1)", 78: "Men's National (INT)", 2118: "Icons (ICN)",
+        2216: "Barclays WSL (ENG 1)", 2218: "Arkema PL (FRA 1)", 2236: "Calcio A Femminile (ITA 1)", 2215: "GPFBL (GER 1)",
+        2222: "Liga F Moeve (ESP 1)", 2228: "Liga Portugal Feminino (POR 1)", 2229: "Nederland Vrouwen Liga (NED 1)",
+        2221: "NWSL (USA 1)", 2231: "Schweizer Damen Liga (SUI 1)", 2233: "Scottish Women's League (SCO 1)",
+        2136: "Women's Intl. Cup (WNT)", 2230: "Ceska Liga Žen (CZE 1)"
     };
 
     let CONFIG = {
         rules: {
-            special: { new: 'club', dupeIntrans: 'storage', dupeTrans: 'trade' },
-            gold:    { new: 'club', dupeIntrans: 'storage', dupeTrans: 'trade', minRatingSell: 83 },
-            silver:  { new: 'club', dupeIntrans: 'storage', dupeTrans: 'trade' },
-            bronze:  { new: 'club', dupeIntrans: 'storage', dupeTrans: 'trade' }
+            special: { newIntrans: 'club', newTrans: 'trade', dupeIntrans: 'storage', dupeTrans: 'trade' },
+            gold:    { newIntrans: 'club', newTrans: 'club',  dupeIntrans: 'storage', dupeTrans: 'discard', minRatingSell: 84 },
+            silver:  { newIntrans: 'club', newTrans: 'discard', dupeIntrans: 'discard', dupeTrans: 'discard' }, 
+            bronze:  { newIntrans: 'club', newTrans: 'discard', dupeIntrans: 'discard', dupeTrans: 'discard' }  
         },
-        leagues: [13, 14, 16, 17, 31, 32, 19, 20, 53, 54, 4, 10, 238, 39, 350, 330],
+        leagues: [13, 14, 53, 54, 19, 20, 31, 32, 16, 17, 4, 10, 308, 39, 350, 330],
         checkLeagues: true,
-        soundEnabled: true,
-        saveGolds: false
+        soundEnabled: true
     };
 
     function loadConfig() {
-        const saved = localStorage.getItem('fc26_pro_config_v4_7');
+        const saved = localStorage.getItem('fc26_pro_config_v5_5_DEBUG');
         if (saved) { try { CONFIG = { ...CONFIG, ...JSON.parse(saved) }; } catch(e) {} }
     }
-    function saveConfig() { localStorage.setItem('fc26_pro_config_v4_7', JSON.stringify(CONFIG)); }
+    function saveConfig() { localStorage.setItem('fc26_pro_config_v5_5_DEBUG', JSON.stringify(CONFIG)); }
     loadConfig();
 
     let SESSION_DATA = { items: [], stats: { rating: {}, totw: 0, special: 0, walkout: 0 }, totalOpened: 0, coins: 0 };
 
     const SOUNDS = {
-        walkout: () => {
-            if(!CONFIG.soundEnabled) return;
-            try {
-                const audio = new AudioContext(); const now = audio.currentTime;
-                [{f:523.25,s:0}, {f:659.25,s:0.15}, {f:783.99,s:0.3}, {f:1046.5,s:0.45}].forEach(n => {
-                    const o=audio.createOscillator(), g=audio.createGain(); o.connect(g); g.connect(audio.destination);
-                    o.type='triangle'; o.frequency.value=n.f; g.gain.setValueAtTime(0.1, now+n.s);
-                    g.gain.exponentialRampToValueAtTime(0.0001, now+n.s+0.15); o.start(now+n.s); o.stop(now+n.s+0.15);
-                });
-            } catch(e) {}
-        },
-        complete: () => {
-            if(!CONFIG.soundEnabled) return;
-            try {
-                const audio = new AudioContext(); const now = audio.currentTime;
-                [{f:880,s:0}, {f:1108,s:0.15}].forEach(n => {
-                    const o=audio.createOscillator(), g=audio.createGain(); o.connect(g); g.connect(audio.destination);
-                    o.frequency.value=n.f; g.gain.setValueAtTime(0.05, now+n.s); g.gain.exponentialRampToValueAtTime(0.0001, now+n.s+0.3); o.start(now+n.s); o.stop(now+n.s+0.3);
-                });
-            } catch(e) {}
-        }
+        walkout: () => { if(CONFIG.soundEnabled) try { const a=new AudioContext();const n=a.currentTime;[{f:523.25,s:0},{f:659.25,s:0.15},{f:783.99,s:0.3},{f:1046.5,s:0.45}].forEach(x=>{const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='triangle';o.frequency.value=x.f;g.gain.setValueAtTime(0.1,n+x.s);g.gain.exponentialRampToValueAtTime(0.0001,n+x.s+0.15);o.start(n+x.s);o.stop(n+x.s+0.15);}); } catch(e){} },
+        complete: () => { if(CONFIG.soundEnabled) try { const a=new AudioContext();const n=a.currentTime;[{f:880,s:0},{f:1108,s:0.15}].forEach(x=>{const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=x.f;g.gain.setValueAtTime(0.05,n+x.s);g.gain.exponentialRampToValueAtTime(0.0001,n+x.s+0.3);o.start(n+x.s);o.stop(n+x.s+0.3);}); } catch(e){} }
     };
 
     const originalSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
@@ -124,11 +84,8 @@
         apply: function(target, thisArg, argumentsList) {
             const [url, config] = argumentsList;
             if (config && config.headers) {
-                if (config.headers instanceof Headers) {
-                    config.headers.forEach((v, k) => { if (k.toLowerCase() === 'x-ut-sid') { SESSION_TOKEN = v; updateStatusUI(); } });
-                } else {
-                    for (let h in config.headers) { if (h.toLowerCase() === 'x-ut-sid') { SESSION_TOKEN = config.headers[h]; updateStatusUI(); } }
-                }
+                if (config.headers instanceof Headers) { config.headers.forEach((v, k) => { if (k.toLowerCase() === 'x-ut-sid') { SESSION_TOKEN = v; updateStatusUI(); } }); } 
+                else { for (let h in config.headers) { if (h.toLowerCase() === 'x-ut-sid') { SESSION_TOKEN = config.headers[h]; updateStatusUI(); } } }
             }
             return target.apply(thisArg, argumentsList);
         }
@@ -144,30 +101,27 @@
             let fullUrl = `${API_BASE}${endpoint}`;
             if (method === "DELETE" && body && body.itemIds) { fullUrl += `?itemIds=${body.itemIds.join(',')}`; body = null; }
             
+            debugLog("🌐", `PETICIÓN API -> ${method} ${endpoint}`, body ? "Con Body" : "Sin Body", body);
+
             const response = await originalFetch(fullUrl, { method: method, headers: { "X-Ut-Sid": SESSION_TOKEN, "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : null });
             
             if (!response.ok) {
                 const text = await response.text();
+                debugLog("❌", `ERROR API -> ${response.status} en ${endpoint}`, text);
+
                 if (response.status === 404) throw new Error("PACK_NOT_FOUND");
                 if (response.status === 471) throw new Error("UNASSIGNED_ERROR"); 
                 if (response.status === 460) throw new Error("INVALID_PACK_TYPE");
                 if (response.status === 409 || text.includes("SBC_STORAGE_FULL")) throw new Error("STORAGE_FULL");
+                if (response.status === 401 || response.status === 503) throw new Error("SESSION_EXPIRED"); 
+                if (response.status === 400 && endpoint.includes("/purchased/items")) throw new Error("BAD_REQUEST_OPENING");
                 
-                if (response.status === 400) {
-                    if (endpoint.includes("/item/") && method === "POST") {
-                        console.warn("⚠️ Error 400 en canje (ignorado, posible auto-canje)");
-                        throw new Error("REDEEM_FAILED");
-                    }
-                    if (endpoint.includes("/purchased/items")) {
-                        throw new Error("BAD_REQUEST_OPENING");
-                    }
-                    throw new Error("BAD_REQUEST");
-                }
-                
-                if (response.status === 401) return {};
                 throw new Error(`API Error ${response.status}`);
             }
-            return response.json();
+
+            const data = await response.json();
+            debugLog("✅", `RESPUESTA API -> ${method} ${endpoint} (200 OK)`);
+            return data;
         },
         async openStoredPack(packId, isTradeable) { return this.request("/purchased/items", "POST", { packId: parseInt(packId), untradeable: !isTradeable, usePreOrder: true }); },
         
@@ -179,12 +133,12 @@
                 try {
                     await this.request("/item", "PUT", { itemData: chunk });
                 } catch(e) {
-                    console.warn("Fallo lote, intentando fallback...", e);
+                    debugLog("⚠️", "Fallo lote MOVE, intentando fallback uno a uno...", e.message);
                     for (const item of chunk) { 
-                        try { 
-                            await this.request("/item", "PUT", { itemData: [item] }); 
-                        } catch(ee) {
+                        try { await this.request("/item", "PUT", { itemData: [item] }); } 
+                        catch(ee) {
                             if (item.pile === 'club') {
+                                debugLog("🔄", `Fallback Club->Storage para item ${item.id}`);
                                 try { await this.request("/item", "PUT", { itemData: [{id: item.id, pile: 'storage'}] }); } catch (eee) {}
                             }
                         } 
@@ -198,20 +152,29 @@
             const CHUNK_SIZE = 40; 
             for (let i = 0; i < itemsIdsArray.length; i += CHUNK_SIZE) {
                 const chunk = itemsIdsArray.slice(i, i + CHUNK_SIZE);
-                try {
-                    await this.request("/item", "DELETE", { itemIds: chunk });
-                } catch(e) {
+                try { await this.request("/item", "DELETE", { itemIds: chunk }); } 
+                catch(e) {
+                    debugLog("⚠️", "Fallo lote DISCARD, intentando fallback...", e.message);
                     for (const id of chunk) { try { await this.request("/item", "DELETE", { itemIds: [id] }); } catch(ee) {} }
                 }
             }
         },
         
-        async redeemSpecificItem(itemId) { return this.request(`/item/${itemId}`, "POST", { itemData: [] }); },
+        async redeemSpecificItem(itemId) { return this.request(`/item/${itemId}`, "POST", {}); },
         async updateCredits() { try { return await this.request("/user/credits", "GET"); } catch(e) {} },
         async refreshStore() { try { await this.request("/store/purchaseGroup/all?ppInfo=true&categoryInfo=true", "GET"); return true; } catch(e) { return false; } }
     };
 
-    // --- CEREBRO ---
+    function mapActionToCommand(configValue, isDupe = false) {
+        const map = {
+            'club': 'TO_CLUB',
+            'storage': 'TO_SBC_STORAGE',
+            'trade': 'TO_TRANSFER_LIST',
+            'discard': isDupe ? 'QUICK_SELL_0' : 'QUICK_SELL'
+        };
+        return map[configValue] || 'TO_CLUB'; 
+    }
+
     function getCardCategory(item) {
         const rare = item.rareflag || 0; const rating = item.rating || 0;
         const specialRareFlags = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 17, 18, 19, 20, 21, 22, 23, 24, 32, 33, 34, 35, 36, 37, 38, 39, 40, 50, 51, 52, 53, 54, 55];
@@ -223,85 +186,76 @@
 
     function analyzeItem(item, isRealDuplicate) {
         const type = (item.itemType || item.type || '').toLowerCase();
-        
-        // 0. STOP PICK
-        const isPlayerPick = (
-            type.includes('pick') || type.includes('choice') || 
-            item.cardsubtypeid === 20 || item.cardsubtypeid === 203 || item.cardsubtypeid === 204
-        );
-        if (isPlayerPick) return 'STOP_PICK';
-
-        // 1. REDEEM
-        const isRedeemable = (
-            type === 'misc' || type === 'currency' || type === 'draft_token' ||
-            type === 'coin' || type === 'pack' || (item.value > 0 && !item.rating)
-        );
-        if (isRedeemable) {
-            console.log(`💎 Canjeable: ${type}, ID: ${item.id}, Valor: ${item.value || item.amount}`);
-            return 'REDEEM';
-        }
-
+        const itemId = item.id || 'N/A';
+        const itemRating = item.rating || 'N/A';
         const isTradeable = !item.untradeable;
         const isDupe = isRealDuplicate || item.isDuplicate || (item.itemState === "duplicate");
 
-        // 2. NO JUGADORES (V4.4 COLLECTOR)
-        if (type !== 'player') {
-            const isJunk = ['kit', 'badge', 'stadium', 'ball', 'tifo', 'celebration', 'manager', 'staff'].some(c => type.includes(c));
-            
-            if (isJunk) {
-                if (isTradeable) return 'QUICK_SELL';
-                if (isDupe) return 'QUICK_SELL_0';
-                return 'TO_CLUB'; // Guardar nuevo intransferible
-            }
-            return isTradeable ? 'QUICK_SELL' : 'TO_CLUB'; // Recursos
+        debugLog("🔍", `ANALIZANDO ITEM: [${itemId}] - Rating: ${itemRating} - Type: ${type}`);
+        
+        const isPlayerPick = (type.includes('pick') || type.includes('choice') || item.cardsubtypeid === 20 || item.cardsubtypeid === 203 || item.cardsubtypeid === 204);
+        if (isPlayerPick) {
+            debugLog("🛑", "PLAYER PICK DETECTADO. PARADA DE EMERGENCIA.");
+            return 'STOP_PICK';
         }
 
-        // 3. JUGADORES
-        const rating = item.rating || 0;
-        const category = getCardCategory(item);
+        const isRedeemable = (type === 'misc' || type === 'currency' || type === 'draft_token' || type === 'coin' || type === 'pack' || (item.value > 0 && !item.rating));
+        if (isRedeemable) {
+            debugLog("💎", `Consumible/Monedas detectado (ID: ${itemId}) -> ACCIÓN: REDEEM`);
+            return 'REDEEM';
+        }
 
-        // Stats
+        if (type !== 'player') {
+            if (isDupe) return isTradeable ? 'QUICK_SELL' : 'QUICK_SELL_0';
+            return isTradeable ? 'QUICK_SELL' : 'TO_CLUB';
+        }
+
+        const rating = item.rating || 0;
+        const rawCategory = getCardCategory(item);
+        const isImportantLeague = CONFIG.checkLeagues ? CONFIG.leagues.includes(item.leagueId) : false;
+
+        const isGoodGold = rawCategory === 'special' || (rawCategory === 'gold' && rating >= CONFIG.rules.gold.minRatingSell);
+        const isBadGold = rawCategory === 'gold' && !isGoodGold;
+        const isSilverOrBronze = rawCategory === 'silver' || rawCategory === 'bronze';
+
+        debugLog("🧠", `Estado Jugador: Liga:${item.leagueId}(Importante:${isImportantLeague}) | Bueno:${isGoodGold} | Trans:${isTradeable} | Dupe:${isDupe}`);
+
         if (!SESSION_DATA.stats.rating[rating]) SESSION_DATA.stats.rating[rating] = 0;
         SESSION_DATA.stats.rating[rating]++;
-        if (category === 'special') SESSION_DATA.stats.special++; 
+        if (rawCategory === 'special') SESSION_DATA.stats.special++; 
         if (rating >= 86) SESSION_DATA.stats.walkout++; 
-        
-        if ((category === 'special' || rating >= 86) && !isDupe && CONFIG.soundEnabled) {
-            SOUNDS.walkout();
-        }
 
-        // A. ESPECIALES
-        if (category === 'special') { 
-            const rules = CONFIG.rules.special; 
-            if (isTradeable) return 'TO_TRANSFER_LIST'; 
-            return isDupe ? `TO_${rules.dupeIntrans.toUpperCase()}` : `TO_${rules.new.toUpperCase()}`; 
-        }
+        let finalDecision = "";
 
-        // B. ORO
-        else if (category === 'gold') {
-            const rules = CONFIG.rules.gold;
-            const isHighRated = rating >= rules.minRatingSell; 
-            const isImportantLeague = CONFIG.checkLeagues ? CONFIG.leagues.includes(item.leagueId) : true;
-
-            if (isTradeable && rating >= 84) return 'TO_TRANSFER_LIST';
-            
-            if (isDupe) {
-                if (!isTradeable) return 'TO_SBC_STORAGE';
-                else return isHighRated ? 'TO_TRANSFER_LIST' : 'QUICK_SELL';
-            }
+        if (isImportantLeague) {
+            if (isGoodGold || isBadGold) { 
+                if (isDupe) finalDecision = isTradeable ? 'TO_TRANSFER_LIST' : 'TO_SBC_STORAGE';
+                else finalDecision = 'TO_CLUB'; 
+            } 
             else { 
-                if (!isTradeable || isHighRated || isImportantLeague) return 'TO_CLUB';
-                if (CONFIG.saveGolds) return 'TO_CLUB'; 
-                return 'QUICK_SELL';
+                if (isDupe) finalDecision = isTradeable ? 'QUICK_SELL' : 'QUICK_SELL_0';
+                else finalDecision = 'TO_CLUB'; 
+            }
+        } 
+        else {
+            if (isGoodGold) {
+                if (isDupe) finalDecision = isTradeable ? 'TO_TRANSFER_LIST' : 'TO_SBC_STORAGE';
+                else finalDecision = isTradeable ? 'TO_TRANSFER_LIST' : 'TO_CLUB';
+            }
+            else if (isBadGold) {
+                const rules = CONFIG.rules.gold;
+                let userOrder = isTradeable ? (isDupe ? rules.dupeTrans : rules.newTrans) : (isDupe ? rules.dupeIntrans : rules.newIntrans);
+                finalDecision = mapActionToCommand(userOrder, isDupe);
+            }
+            else if (isSilverOrBronze) {
+                const rules = rawCategory === 'silver' ? CONFIG.rules.silver : CONFIG.rules.bronze;
+                let userOrder = isTradeable ? (isDupe ? rules.dupeTrans : rules.newTrans) : (isDupe ? rules.dupeIntrans : rules.newIntrans);
+                finalDecision = mapActionToCommand(userOrder, isDupe);
             }
         }
 
-        // C. PLATA/BRONCE
-        else {
-            if (!isTradeable) return isDupe ? 'TO_SBC_STORAGE' : 'TO_CLUB';
-            else if (CONFIG.checkLeagues && CONFIG.leagues.includes(item.leagueId)) return isDupe ? 'QUICK_SELL' : 'TO_CLUB'; 
-            else return 'QUICK_SELL';
-        }
+        debugLog("✅", `DECISIÓN FINAL para [${itemId}]: ${finalDecision}`);
+        return finalDecision;
     }
 
     async function startEngine(packId, config) {
@@ -311,7 +265,7 @@
         showLoadingOverlay();
 
         for (let i = 0; i < total; i++) {
-            console.log(`📦 Abriendo sobre ${i+1}/${total}`);
+            debugLog("📦", `--- INICIANDO APERTURA DE SOBRE ${i+1}/${total} ---`);
             
             try {
                 updateLoadingMsg(`ABRIENDO SOBRE ${i+1}/${total}...`, {current: i+1, total: total});
@@ -320,7 +274,10 @@
                 let items = data.itemList || data.items || [];
                 SESSION_DATA.totalOpened++;
                 
-                if (!items.length) continue;
+                if (!items.length) {
+                    debugLog("⚠️", "El sobre devolvió 0 items.");
+                    continue;
+                }
 
                 const duplicateSet = new Set(); 
                 if (data.duplicateItemIdList) data.duplicateItemIdList.forEach(d => duplicateSet.add(d.itemId));
@@ -328,7 +285,6 @@
                 let moveQueue = [], discardQueue = [], redeemQueue = [];
                 let stopExecution = false;
 
-                // ANALIZAR
                 for (const item of items) {
                     const isRealDupe = duplicateSet.has(item.id);
                     const action = analyzeItem(item, isRealDupe);
@@ -347,7 +303,7 @@
                     else if (action === 'TO_CLUB') moveQueue.push({ id: item.id, pile: "club" });
                     else if (action === 'TO_TRANSFER_LIST') moveQueue.push({ id: item.id, pile: "trade" });
                     else if (action === 'TO_SBC_STORAGE') moveQueue.push({ id: item.id, pile: "storage" });
-                    else if (!action) moveQueue.push({ id: item.id, pile: "club" }); // Fallback
+                    else if (!action) moveQueue.push({ id: item.id, pile: "club" });
 
                     SESSION_DATA.items.push({ id: item.id, pack: i + 1, assetId: item.assetId, rating: item.rating||0, action: action||'TO_CLUB', type: cat, status: "PENDIENTE", isPlayer: (item.itemType === 'player') });
                 }
@@ -358,9 +314,8 @@
                     break;
                 }
                 
-                console.log(`📊 Análisis: ${redeemQueue.length} canjeables, ${moveQueue.length} a mover, ${discardQueue.length} a vender`);
+                debugLog("🛒", `Colas de Ejecución: REDEEM(${redeemQueue.length}), MOVE(${moveQueue.length}), DISCARD(${discardQueue.length})`);
 
-                // 1. CANJEAR
                 if (redeemQueue.length > 0) {
                     updateLoadingMsg(`CANJEANDO ${redeemQueue.length} ITEMS...`);
                     for (const redeemItem of redeemQueue) { 
@@ -371,27 +326,19 @@
                             confirmStatus([redeemItem.id], "CANJEADO ($)"); 
                         } 
                         catch (e) { 
-                            if(e.message === "REDEEM_FAILED") {
-                                console.log(`✅ Auto-canjeado: ${redeemItem.type}`);
-                                confirmStatus([redeemItem.id], "CANJEADO (Auto)");
-                            } else {
-                                console.warn("Error real canje:", e);
-                                confirmStatus([redeemItem.id], "ERROR CANJE");
-                            }
+                            confirmStatus([redeemItem.id], "ERROR CANJE"); 
                         } 
                     }
                     await EA_API.updateCredits();
                     await new Promise(r => setTimeout(r, 800)); 
                 }
 
-                // 2. MOVER
                 if (moveQueue.length > 0) {
                     updateLoadingMsg(`GUARDANDO ${moveQueue.length} ITEMS...`);
                     await EA_API.moveItems(moveQueue); 
                     confirmStatus(moveQueue.map(i => i.id), "MOVIDO OK");
                 }
 
-                // 3. VENDER
                 if (discardQueue.length > 0) {
                     updateLoadingMsg(`VENDIENDO ${discardQueue.length} ITEMS...`);
                     await EA_API.discardItems(discardQueue);
@@ -401,20 +348,19 @@
                 await new Promise(r => setTimeout(r, config.speed === 'fast' ? 500 : 1500));
 
             } catch (error) {
-                console.error("⛔ ERROR EN SOBRE:", error);
+                debugLog("⛔", "CRASH EN BUCLE PRINCIPAL", error.message, error);
                 
-                const isCritical = ['PACK_NOT_FOUND', 'UNASSIGNED_ERROR', 'STORAGE_FULL', 'NO_TOKEN', 'INVALID_PACK_TYPE', 'BAD_REQUEST_OPENING'].some(e => error.message.includes(e));
+                const isCritical = ['PACK_NOT_FOUND', 'UNASSIGNED_ERROR', 'STORAGE_FULL', 'NO_TOKEN', 'INVALID_PACK_TYPE', 'BAD_REQUEST_OPENING', 'SESSION_EXPIRED'].some(e => error.message.includes(e));
                 
                 if (isCritical) {
                     hideLoadingOverlay();
                     let msg = `❌ ERROR CRÍTICO: ${error.message}`;
                     if (error.message.includes("471")) msg = "❌ ERROR 471: Tienes items sin asignar. Limpia y reinicia.";
-                    if (error.message.includes("BAD_REQUEST_OPENING")) msg = "❌ ERROR 400: Posible Player Pick. Revisa manualmente.";
+                    if (error.message.includes("BAD_REQUEST_OPENING")) msg = "❌ ERROR 400: Posible Player Pick.";
+                    if (error.message.includes("SESSION_EXPIRED")) msg = "❌ SESIÓN CADUCADA (401/503). Recarga la página.";
                     alert(msg);
                     break;
                 }
-                
-                console.warn(`⚠️ Error no crítico en sobre ${i+1}, continuando...`);
                 await new Promise(r => setTimeout(r, 1000));
             }
         }
@@ -429,23 +375,16 @@
                 if(t.innerText.includes('Club')) clubBtn = t;
                 if(t.innerText.includes('Tienda') || t.innerText.includes('Store')) storeBtn = t;
             });
-            if(clubBtn && storeBtn) {
-                clubBtn.click();
-                await new Promise(r => setTimeout(r, 500));
-                storeBtn.click();
-            }
+            if(clubBtn && storeBtn) { clubBtn.click(); await new Promise(r => setTimeout(r, 500)); storeBtn.click(); }
         } catch(e) {}
 
         hideLoadingOverlay();
         if(CONFIG.soundEnabled) SOUNDS.complete(); 
-        
-        // FIX V4.7: Llamada segura al reporte (Esta función debe estar definida abajo)
         if (config.showReport && typeof showReport === 'function') showReport(); 
         else alert("✅ Finalizado");
     }
 
     function confirmStatus(ids, statusMsg) { ids.forEach(targetId => { let log = SESSION_DATA.items.find(x => x.id === targetId); if(log) log.status = statusMsg; }); }
-    function getLeagueName(id) { return ALL_LEAGUES[id] || `Liga ${id}`; }
     function getImageUrl(assetId) { return `https://www.ea.com/ea-sports-fc/ultimate-team/web-app/content/26E4D4D6-8DBB-4A9A-BD99-9C47D3AA341D/2026/fut/items/images/mobile/portraits/${assetId}.png`; }
     function updateStatusUI() { const el = document.getElementById('token-status'); if(el && SESSION_TOKEN) { el.innerText = "CONECTADO"; el.style.color = "#00ff88"; } }
     function showLoadingOverlay() { if(document.getElementById('fc-loading-overlay')) return; const div = document.createElement('div'); div.id = "fc-loading-overlay"; div.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999999;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#fff;font-family:sans-serif;"; div.innerHTML = `<div style="font-size:40px;">⚡</div><div id="fc-loading-text" style="font-size:18px;font-weight:bold;color:#00d2be;">INICIANDO...</div><div id="fc-coin-counter" style="margin-top:15px;font-size:14px;color:#f39c12;">💰 <span id="coin-amount">0</span> monedas</div>`; document.body.appendChild(div); }
@@ -459,34 +398,74 @@
         
         document.addEventListener('keydown', function(e) { if(e.key === "Escape") overlay.remove(); }, {once:true});
 
-        const mkSel = (cat, context, val) => { let options = []; if (context === 'new') options = [['club','Club'], ['trade','Transferible'], ['discard','Venta']]; else if (context === 'dupeTrans') options = [['trade','Transferible'], ['discard','Venta']]; else if (context === 'dupeIntrans') options = [['storage','SBC'], ['discard','Venta (0)']]; let html = `<select onchange="window.updateRule('${cat}','${context}',this.value)" style="background:#333;color:#fff;border:1px solid #555;padding:4px;width:100%;">`; options.forEach(opt => { html += `<option value="${opt[0]}" ${val === opt[0] ? 'selected' : ''}>${opt[1]}</option>`; }); return html + `</select>`; };
-        const renderLeagues = () => CONFIG.leagues.map(id => `<span style="background:#00d2be;color:#000;padding:4px 8px;border-radius:4px;margin-right:5px;font-size:11px;display:inline-block;margin-bottom:5px;">${getLeagueName(id)} <b onclick="window.removeLeague(${id})" style="cursor:pointer;margin-left:5px;color:#c0392b;font-weight:bold;">✕</b></span>`).join('');
+        const mkSel = (cat, context, val) => { let options = []; 
+            if (context.startsWith('new')) options = [['club','Club'], ['trade','Transferible'], ['discard','Venta']]; 
+            else if (context.startsWith('dupeTrans')) options = [['trade','Transferible'], ['discard','Venta']]; 
+            else if (context.startsWith('dupeIntrans')) options = [['storage','SBC'], ['discard','Venta (0)']]; 
+            
+            let html = `<select onchange="window.updateRule('${cat}','${context}',this.value)" style="background:#333;color:#fff;border:1px solid #555;padding:4px;width:100%;">`; 
+            options.forEach(opt => { html += `<option value="${opt[0]}" ${val === opt[0] ? 'selected' : ''}>${opt[1]}</option>`; }); 
+            return html + `</select>`; 
+        };
+        const renderLeagues = () => CONFIG.leagues.map(id => `<span style="background:#00d2be;color:#000;padding:4px 8px;border-radius:4px;margin-right:5px;font-size:11px;display:inline-block;margin-bottom:5px;">${ALL_LEAGUES[id] || id} <b onclick="window.removeLeague(${id})" style="cursor:pointer;margin-left:5px;color:#c0392b;font-weight:bold;">✕</b></span>`).join('');
         let leagueOptions = `<option value="">-- Selecciona Liga --</option>`; Object.entries(ALL_LEAGUES).sort((a,b) => a[1].localeCompare(b[1])).forEach(([id, name]) => { leagueOptions += `<option value="${id}">${name}</option>`; });
         
-        let html = `<div style="background:#181818;color:#fff;font-family:sans-serif;width:750px;padding:25px;border:1px solid #00d2be;border-radius:8px;max-height:95vh;overflow-y:auto;">
+        let html = `<div style="background:#181818;color:#fff;font-family:sans-serif;width:850px;padding:25px;border:1px solid #00d2be;border-radius:8px;max-height:95vh;overflow-y:auto;">
             <h3 style="color:#00d2be;border-bottom:1px solid #333;padding-bottom:10px;margin-top:0;">⚙️ CONFIGURACIÓN <span style="font-size:12px;color:#666;float:right">(ESC para salir)</span></h3>
-            <div style="margin-bottom:20px;background:#222;padding:15px;border-radius:5px;border:1px solid #333;"><label style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;"><span style="font-weight:bold;color:#00d2be;">🔊 Efectos de Sonido</span><input type="checkbox" id="sound-toggle" ${CONFIG.soundEnabled ? 'checked' : ''} onchange="window.toggleSound(this.checked)" style="transform:scale(1.5);cursor:pointer;"></label></div>
             <div style="margin-bottom:20px;background:#222;padding:15px;border-radius:5px;border:1px solid #333;">
-                <label style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;color:#f1c40f;">
-                    <span style="font-weight:bold;">🛡️ Guardar Oros (Acumulador)</span>
-                    <input type="checkbox" id="save-golds-toggle" ${CONFIG.saveGolds ? 'checked' : ''} onchange="window.toggleSaveGolds(this.checked)" style="transform:scale(1.5);cursor:pointer;">
+                <label style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:0px;">
+                    <span style="font-weight:bold;color:#00d2be;">🔊 Efectos de Sonido</span>
+                    <input type="checkbox" id="sound-toggle" ${CONFIG.soundEnabled ? 'checked' : ''} onchange="window.toggleSound(this.checked)" style="transform:scale(1.5);cursor:pointer;">
                 </label>
-                <div style="font-size:11px;color:#aaa;margin-top:5px;">Guarda en Club oros malos transferibles nuevos (para SBCs).</div>
             </div>
-            <div style="margin-bottom:20px;background:#222;padding:15px;border-radius:5px;border:1px solid #333;"><div style="font-weight:bold;margin-bottom:5px;color:#f39c12;">🏆 LIGAS IMPORTANTES</div><div id="league-list" style="margin-bottom:15px;padding:5px;background:#1a1a1a;border:1px solid #444;border-radius:4px;min-height:40px;">${renderLeagues()}</div><div style="display:flex;gap:10px;"><select id="league-selector" style="flex:1;padding:8px;background:#333;border:1px solid #555;color:#fff;">${leagueOptions}</select><button onclick="window.addLeague()" style="background:#00d2be;color:#000;border:none;padding:8px 15px;cursor:pointer;font-weight:bold;border-radius:3px;">AÑADIR</button></div></div>
-            <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:20px;"><tr style="color:#aaa;text-align:left;"><th style="padding:8px;">TIPO</th><th style="padding:8px;">NUEVO</th><th style="padding:8px;">REPE (INTRANS)</th><th style="padding:8px;">REPE (TRANS)</th></tr><tr style="border-bottom:1px solid #333;"><td style="padding:10px;color:#9b59b6;font-weight:bold;">ESPECIAL</td><td>${mkSel('special','new',CONFIG.rules.special.new)}</td><td>${mkSel('special','dupeIntrans',CONFIG.rules.special.dupeIntrans)}</td><td>${mkSel('special','dupeTrans',CONFIG.rules.special.dupeTrans)}</td></tr><tr style="border-bottom:1px solid #333;"><td style="padding:10px;color:#f1c40f;font-weight:bold;">ORO</td><td>${mkSel('gold','new',CONFIG.rules.gold.new)}</td><td>${mkSel('gold','dupeIntrans',CONFIG.rules.gold.dupeIntrans)}</td><td>${mkSel('gold','dupeTrans',CONFIG.rules.gold.dupeTrans)}<div style="margin-top:5px;font-size:10px;color:#aaa;">Vender < <input type="number" value="${CONFIG.rules.gold.minRatingSell}" style="width:30px;text-align:center;background:#333;border:none;color:#fff;" onchange="window.updateRule('gold','minRatingSell',this.value)"></div></td></tr></table>
+            
+            <div style="margin-bottom:20px;background:#222;padding:15px;border-radius:5px;border:1px solid #333;"><div style="font-weight:bold;margin-bottom:5px;color:#f39c12;">🏆 LIGAS IMPORTANTES (Tienen Prioridad Absoluta)</div><div id="league-list" style="margin-bottom:15px;padding:5px;background:#1a1a1a;border:1px solid #444;border-radius:4px;min-height:40px;">${renderLeagues()}</div><div style="display:flex;gap:10px;"><select id="league-selector" style="flex:1;padding:8px;background:#333;border:1px solid #555;color:#fff;">${leagueOptions}</select><button onclick="window.addLeague()" style="background:#00d2be;color:#000;border:none;padding:8px 15px;cursor:pointer;font-weight:bold;border-radius:3px;">AÑADIR</button></div></div>
+            
+            <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:20px;">
+                <tr style="color:#aaa;text-align:left;">
+                    <th style="padding:8px;">TIPO (Ligas NO Importantes)</th>
+                    <th style="padding:8px;">NUEVO (Intrans)</th>
+                    <th style="padding:8px;">NUEVO (Trans)</th>
+                    <th style="padding:8px;">REPE (Intrans)</th>
+                    <th style="padding:8px;">REPE (Trans)</th>
+                </tr>
+                <tr style="border-bottom:1px solid #333;"><td style="padding:10px;color:#9b59b6;font-weight:bold;">ORO BUENO (84+ y Especiales)</td>
+                    <td>${mkSel('special','newIntrans',CONFIG.rules.special.newIntrans)}</td>
+                    <td>${mkSel('special','newTrans',CONFIG.rules.special.newTrans)}</td>
+                    <td>${mkSel('special','dupeIntrans',CONFIG.rules.special.dupeIntrans)}</td>
+                    <td>${mkSel('special','dupeTrans',CONFIG.rules.special.dupeTrans)}</td>
+                </tr>
+                <tr style="border-bottom:1px solid #333;"><td style="padding:10px;color:#f1c40f;font-weight:bold;">ORO MALO</td>
+                    <td>${mkSel('gold','newIntrans',CONFIG.rules.gold.newIntrans)}</td>
+                    <td>${mkSel('gold','newTrans',CONFIG.rules.gold.newTrans)}</td>
+                    <td>${mkSel('gold','dupeIntrans',CONFIG.rules.gold.dupeIntrans)}</td>
+                    <td>${mkSel('gold','dupeTrans',CONFIG.rules.gold.dupeTrans)}
+                        <div style="margin-top:5px;font-size:10px;color:#aaa;">Media Corte < <input type="number" value="${CONFIG.rules.gold.minRatingSell}" style="width:30px;text-align:center;background:#333;border:none;color:#fff;" onchange="window.updateRule('gold','minRatingSell',this.value)"></div>
+                    </td>
+                </tr>
+                <tr style="border-bottom:1px solid #333;"><td style="padding:10px;color:#bdc3c7;font-weight:bold;">PLATA</td>
+                    <td>${mkSel('silver','newIntrans',CONFIG.rules.silver.newIntrans)}</td>
+                    <td>${mkSel('silver','newTrans',CONFIG.rules.silver.newTrans)}</td>
+                    <td>${mkSel('silver','dupeIntrans',CONFIG.rules.silver.dupeIntrans)}</td>
+                    <td>${mkSel('silver','dupeTrans',CONFIG.rules.silver.dupeTrans)}</td>
+                </tr>
+                <tr style="border-bottom:1px solid #333;"><td style="padding:10px;color:#d35400;font-weight:bold;">BRONCE</td>
+                    <td>${mkSel('bronze','newIntrans',CONFIG.rules.bronze.newIntrans)}</td>
+                    <td>${mkSel('bronze','newTrans',CONFIG.rules.bronze.newTrans)}</td>
+                    <td>${mkSel('bronze','dupeIntrans',CONFIG.rules.bronze.dupeIntrans)}</td>
+                    <td>${mkSel('bronze','dupeTrans',CONFIG.rules.bronze.dupeTrans)}</td>
+                </tr>
+            </table>
             <button id="save-cfg" style="width:100%;padding:12px;background:#00d2be;border:none;font-weight:bold;cursor:pointer;font-size:14px;border-radius:4px;">GUARDAR CAMBIOS</button>
         </div>`;
         overlay.innerHTML = html; document.body.appendChild(overlay);
         window.updateRule = (cat, key, val) => { if(key === 'minRatingSell') val = parseInt(val); CONFIG.rules[cat][key] = val; };
         window.toggleSound = (enabled) => { CONFIG.soundEnabled = enabled; };
-        window.toggleSaveGolds = (enabled) => { CONFIG.saveGolds = enabled; };
         window.addLeague = () => { const id = parseInt(document.getElementById('league-selector').value); if(id && !CONFIG.leagues.includes(id)) { CONFIG.leagues.push(id); document.getElementById('league-list').innerHTML = renderLeagues(); } else if (CONFIG.leagues.includes(id)) { alert('⚠️ Liga ya añadida'); }};
         window.removeLeague = (id) => { CONFIG.leagues = CONFIG.leagues.filter(l => l !== id); document.getElementById('league-list').innerHTML = renderLeagues(); };
         document.getElementById('save-cfg').onclick = () => { saveConfig(); overlay.remove(); alert('✅ Configuración guardada'); };
     }
 
-    // --- FUNCIÓN RESTAURADA Y VERIFICADA ---
     function showReport() {
         const highlightItems = SESSION_DATA.items.filter(i => i.isPlayer && (i.rating >= 84 || i.type === 'special')).sort((a,b) => b.rating - a.rating);
         let statsHtml = `<div id="tab-stats"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:15px;text-align:center;"><div class="stat-box" style="border:1px solid #00d2be;padding:5px;">${SESSION_DATA.totalOpened} <span style="font-size:10px">SOBRES</span></div><div class="stat-box" style="border:1px solid #f1c40f;padding:5px;">${SESSION_DATA.stats.walkout} <span style="font-size:10px">WALKOUT</span></div><div class="stat-box" style="border:1px solid #9b59b6;padding:5px;">${SESSION_DATA.stats.special} <span style="font-size:10px">ESPECIAL</span></div><div class="stat-box" style="border:1px solid #f39c12;padding:5px;color:#f39c12;font-weight:bold;">${SESSION_DATA.coins.toLocaleString()} <span style="font-size:10px;color:#aaa">GANANCIAS</span></div></div><div style="height:300px;overflow-y:auto;border:1px solid #333;padding:10px;"><table style="width:100%;font-size:12px;border-collapse:collapse;">`;
@@ -509,7 +488,6 @@
         document.getElementById('close-report').onclick = () => overlay.remove();
     }
 
-    // --- INIT ---
     function initUI() {
         if (!document.body) { setTimeout(initUI, 100); return; }
         const style = document.createElement("style");
@@ -518,7 +496,7 @@
         function showMenu(packId) {
             const overlay = document.createElement('div');
             overlay.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:99999;display:flex;justify-content:center;align-items:center";
-            overlay.innerHTML = `<div style="background:#181818;color:#fff;width:380px;padding:25px;border:1px solid #00d2be;font-family:sans-serif;border-radius:8px;"><div style="color:#00d2be;font-weight:bold;margin-bottom:20px;font-size:18px;text-align:center;">⚡ PRO OPENER 4.7</div><div style="margin-bottom:15px"><label style="display:block;margin-bottom:5px;font-size:13px;color:#aaa;">Cantidad:</label><input type="number" id="qty" value="1" min="1" style="width:100%;padding:8px;background:#333;border:1px solid #555;color:#fff;border-radius:4px;"></div><div style="margin-bottom:20px"><label style="display:block;margin-bottom:5px;font-size:13px;color:#aaa;">Velocidad:</label><select id="speed" style="width:100%;padding:8px;background:#333;border:1px solid #555;color:#fff;border-radius:4px;"><option value="slow">Segura (3.5s)</option><option value="medium">Media (2.5s)</option><option value="fast">Rápida (1.2s)</option></select></div><div style="margin-bottom:20px;background:#222;padding:10px;border-radius:4px;border:1px solid #444;"><label style="cursor:pointer;display:flex;align-items:center;font-weight:bold;font-size:13px;"><input type="checkbox" id="chk-tradeable" style="margin-right:8px;transform:scale(1.2);"> 💱 Es Transferible (Tienda)</label></div><button id="btn-cfg" style="width:100%;padding:10px;background:#333;color:#fff;border:1px solid #555;cursor:pointer;margin-bottom:10px;border-radius:4px;">⚙️ PERSONALIZAR</button><div style="display:flex;gap:10px;margin-top:20px;"><button id="btn-cancel" style="flex:1;padding:12px;background:transparent;border:1px solid #e74c3c;color:#e74c3c;cursor:pointer;border-radius:4px;font-weight:bold;">CERRAR</button><button id="btn-run" style="flex:2;padding:12px;background:#00d2be;color:#000;border:none;cursor:pointer;font-weight:bold;border-radius:4px;">EJECUTAR</button></div><div style="text-align:center;margin-top:15px;font-size:11px;color:#666;"><span id="token-status" style="color:${SESSION_TOKEN ? '#00ff88':'orange'}">● ${SESSION_TOKEN ? 'SISTEMA CONECTADO':'ESPERANDO DATOS'}</span><br><div style="display:flex;justify-content:center;gap:15px;margin-top:5px;"><label style="cursor:pointer;"><input type="checkbox" id="chk-report" checked> Ver Informe</label><label style="cursor:pointer;"><input type="checkbox" id="chk-sound" ${CONFIG.soundEnabled ? 'checked' : ''}> 🔊 Sonidos</label></div></div></div>`;
+            overlay.innerHTML = `<div style="background:#181818;color:#fff;width:380px;padding:25px;border:1px solid #00d2be;font-family:sans-serif;border-radius:8px;"><div style="color:#00d2be;font-weight:bold;margin-bottom:20px;font-size:18px;text-align:center;">⚡ PRO OPENER 6.0 PRODUCTION</div><div style="margin-bottom:15px"><label style="display:block;margin-bottom:5px;font-size:13px;color:#aaa;">Cantidad:</label><input type="number" id="qty" value="1" min="1" style="width:100%;padding:8px;background:#333;border:1px solid #555;color:#fff;border-radius:4px;"></div><div style="margin-bottom:20px"><label style="display:block;margin-bottom:5px;font-size:13px;color:#aaa;">Velocidad:</label><select id="speed" style="width:100%;padding:8px;background:#333;border:1px solid #555;color:#fff;border-radius:4px;"><option value="slow">Segura (3.5s)</option><option value="medium">Media (2.5s)</option><option value="fast">Rápida (1.2s)</option></select></div><div style="margin-bottom:20px;background:#222;padding:10px;border-radius:4px;border:1px solid #444;"><label style="cursor:pointer;display:flex;align-items:center;font-weight:bold;font-size:13px;"><input type="checkbox" id="chk-tradeable" style="margin-right:8px;transform:scale(1.2);"> 💱 Es Transferible (Tienda)</label></div><button id="btn-cfg" style="width:100%;padding:10px;background:#333;color:#fff;border:1px solid #555;cursor:pointer;margin-bottom:10px;border-radius:4px;">⚙️ PERSONALIZAR</button><div style="display:flex;gap:10px;margin-top:20px;"><button id="btn-cancel" style="flex:1;padding:12px;background:transparent;border:1px solid #e74c3c;color:#e74c3c;cursor:pointer;border-radius:4px;font-weight:bold;">CERRAR</button><button id="btn-run" style="flex:2;padding:12px;background:#00d2be;color:#000;border:none;cursor:pointer;font-weight:bold;border-radius:4px;">EJECUTAR</button></div><div style="text-align:center;margin-top:15px;font-size:11px;color:#666;"><span id="token-status" style="color:${SESSION_TOKEN ? '#00ff88':'orange'}">● ${SESSION_TOKEN ? 'SISTEMA CONECTADO':'ESPERANDO DATOS'}</span><br><div style="display:flex;justify-content:center;gap:15px;margin-top:5px;"><label style="cursor:pointer;"><input type="checkbox" id="chk-report" checked> Ver Informe</label><label style="cursor:pointer;"><input type="checkbox" id="chk-sound" ${CONFIG.soundEnabled ? 'checked' : ''}> 🔊 Sonidos</label></div></div></div>`;
             document.body.appendChild(overlay);
             document.getElementById('btn-cancel').onclick = () => overlay.remove();
             document.getElementById('btn-cfg').onclick = () => showConfigSettings();
